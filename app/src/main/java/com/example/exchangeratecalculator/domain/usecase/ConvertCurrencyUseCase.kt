@@ -1,5 +1,7 @@
 package com.example.exchangeratecalculator.domain.usecase
 
+import com.example.exchangeratecalculator.core.precision.scaleForDisplay
+import com.example.exchangeratecalculator.core.precision.toBigDecimalOrZero
 import com.example.exchangeratecalculator.domain.model.ConversionQuote
 import com.example.exchangeratecalculator.domain.model.RateTicker
 import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
@@ -29,7 +31,7 @@ class ConvertCurrencyUseCase @Inject constructor() {
     }
 
     private fun parseAmount(inputText: String): BigDecimal =
-        inputText.trim().toBigDecimalOrNull()?.coerceAtLeast(BigDecimal.ZERO) ?: BigDecimal.ZERO
+        inputText.toBigDecimalOrZero().coerceAtLeast(BigDecimal.ZERO)
 
     private fun tickerRateFor(
         fromCode: String,
@@ -59,7 +61,7 @@ class ConvertCurrencyUseCase @Inject constructor() {
     }
 
     private fun displayAmount(amount: BigDecimal): BigDecimal =
-        amount.setScale(DISPLAY_SCALE, RoundingMode.HALF_UP)
+        amount.scaleForDisplay(DISPLAY_SCALE)
 
     companion object {
         private const val RATE_SCALE = 8
