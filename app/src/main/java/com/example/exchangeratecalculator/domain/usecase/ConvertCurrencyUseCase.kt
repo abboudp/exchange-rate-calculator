@@ -16,57 +16,50 @@ class ConvertCurrencyUseCase @Inject constructor() {
         ticker: RateTicker?,
     ): ConversionQuote {
         val fromAmount = parseAmount(inputText)
-        val toAmount = computeToAmount(fromAmount, fromCode, toCode, ticker)
-        val rate = effectiveRate(fromCode, toCode, ticker)
+        val rate = tickerRateFor(fromCode, toCode, ticker)
+        val outputAmount = convertAmount(fromAmount, fromCode, rate)
+
         return ConversionQuote(
             fromCode = fromCode,
             toCode = toCode,
             inputAmount = fromAmount,
-            outputAmount = toAmount,
+            outputAmount = outputAmount,
             rate = rate,
         )
     }
 
-    private fun parseAmount(inputText: String): BigDecimal {
-        if (inputText.isBlank()) return BigDecimal.ZERO
-        return try {
-            val parsed = BigDecimal(inputText.trim())
-            if (parsed < BigDecimal.ZERO) BigDecimal.ZERO else parsed
-        } catch (_: NumberFormatException) {
-            BigDecimal.ZERO
-        }
-    }
+    private fun parseAmount(inputText: String): BigDecimal =
+        inputText.trim().toBigDecimalOrNull()?.coerceAtLeast(BigDecimal.ZERO) ?: BigDecimal.ZERO
 
-    private fun computeToAmount(
-        fromAmount: BigDecimal,
-        fromCode: String,
-        toCode: String,
-        ticker: RateTicker?,
-    ): BigDecimal {
-        if (fromCode == toCode) return fromAmount.setScale(DISPLAY_SCALE, RoundingMode.HALF_UP)
-        if (ticker == null) return displayZero()
-        return if (fromCode == USDC_CURRENCY.code) {
-            if (ticker.bid <= BigDecimal.ZERO) displayZero()
-            else fromAmount.multiply(ticker.bid).setScale(DISPLAY_SCALE, RoundingMode.HALF_UP)
-        } else {
-            if (ticker.ask <= BigDecimal.ZERO) displayZero()
-            else fromAmount
-                .divide(ticker.ask, RATE_SCALE, RoundingMode.HALF_UP)
-                .setScale(DISPLAY_SCALE, RoundingMode.HALF_UP)
-        }
-    }
-
-    private fun effectiveRate(
+    private fun tickerRateFor(
         fromCode: String,
         toCode: String,
         ticker: RateTicker?,
     ): BigDecimal {
         if (fromCode == toCode) return BigDecimal.ONE
-        ticker ?: return BigDecimal.ZERO
-        return if (fromCode == USDC_CURRENCY.code) ticker.bid else ticker.ask
+        if (ticker == null) return BigDecimal.ZERO
+
+        // For a usdc_fiat book, selling USDC receives bid; buying USDC pays ask.
+        val isSellingUsdc = fromCode == USDC_CURRENCY.code
+        return if (isSellingUsdc) ticker.bid else ticker.ask
     }
 
-    private fun displayZero(): BigDecimal = BigDecimal.ZERO.setScale(DISPLAY_SCALE)
+    private fun convertAmount(
+        fromAmount: BigDecimal,
+        fromCode: String,
+        rate: BigDecimal,
+    ): BigDecimal {
+        if (rate <= BigDecimal.ZERO) return displayAmount(BigDecimal.ZERO)
+        val convertedAmount = if (fromCode == USDC_CURRENCY.code) {
+            fromAmount.multiply(rate)
+        } else {
+            fromAmount.divide(rate, RATE_SCALE, RoundingMode.HALF_UP)
+        }
+        return displayAmount(convertedAmount)
+    }
+
+    private fun displayAmount(amount: BigDecimal): BigDecimal =
+        amount.setScale(DISPLAY_SCALE, RoundingMode.HALF_UP)
 
     companion object {
         private const val RATE_SCALE = 8
