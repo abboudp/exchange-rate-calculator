@@ -2,4 +2,6 @@
     <string name="app_name">Exchange Rate Calculator</string>
     <string name="calculator_title">Exchange calculator</string>
     <string name="choose_currency">Choose currency</string>
+    <string name="app_bar_label">Exchange</string>
+    <string name="rate_unavailable">Rate unavailable</string>
 </resources>

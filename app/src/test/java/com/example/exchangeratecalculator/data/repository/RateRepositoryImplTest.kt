@@ -101,6 +101,24 @@ class RateRepositoryImplTest {
         }
 
     @Test
+    fun observeRateTicker_freshCachedEntity_butPollFails_emitsDegraded() =
+        runTest {
+            // Cached entity is still within TTL but the most recent poll attempt
+            // failed. Surface this as Degraded so the UI can flag it before the
+            // full 5-min TTL elapses.
+            val dao =
+                FakeDao().apply {
+                    ticker.value = entity(expiresAtEpochMs = System.currentTimeMillis() + 60_000L)
+                }
+            val repo = newRepo(api = FakeApi(error = IOException("offline")), dao = dao)
+
+            val emissions = repo.observeRateTicker("MXN").take(2).toList()
+
+            assertEquals(RateResource.Loading, emissions[0])
+            assertTrue("expected Degraded but got ${emissions[1]}", emissions[1] is RateResource.Degraded)
+        }
+
+    @Test
     fun observeRateTicker_networkFailure_servesCachedStaleWithoutCrashing() =
         runTest {
             val dao =

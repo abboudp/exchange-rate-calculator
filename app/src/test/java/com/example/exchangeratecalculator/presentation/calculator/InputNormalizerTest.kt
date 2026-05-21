@@ -27,22 +27,41 @@ class InputNormalizerTest {
     }
 
     @Test
-    fun onDigit_preventsMultipleLeadingZeros() {
+    fun onDigit_zeroAfterZero_keepsSingleZero() {
         assertEquals("0", InputNormalizer.onDigit("0", '0'))
     }
 
     @Test
-    fun onDigit_replacesLeadingZeroWithDigit() {
+    fun onDigit_nonZeroAfterZero_replacesLeadingZero() {
         assertEquals("5", InputNormalizer.onDigit("0", '5'))
     }
 
     @Test
-    fun onDigit_capsIntegerAtTenDigits() {
-        assertEquals("9999999999", InputNormalizer.onDigit("9999999999", '1'))
+    fun onDigit_sevenZerosInARow_neverReachesCapAndStaysAtZero() {
+        // Regression: leading-zero rule prevents "00000" buildup that would
+        // otherwise overflow and clamp to MAX_VALUE.
+        var current = ""
+        repeat(7) { current = InputNormalizer.onDigit(current, '0') }
+        assertEquals("0", current)
+    }
+
+    @Test
+    fun onDigit_overflowingIntegerCap_clampsToMaxValue() {
+        // 7th integer digit attempts clamp the value to the cap so the user
+        // gets visible feedback that they hit the limit, rather than a silent
+        // no-op. MAX_VALUE = "999999.99" (under 1,000,000).
+        assertEquals(InputNormalizer.MAX_VALUE, InputNormalizer.onDigit("999999", '1'))
+        assertEquals(InputNormalizer.MAX_VALUE, InputNormalizer.onDigit("111111", '7'))
+    }
+
+    @Test
+    fun onDigit_allowsSixthIntegerDigit() {
+        assertEquals("999999", InputNormalizer.onDigit("99999", '9'))
     }
 
     @Test
     fun onDecimal_onEmpty_returnsZeroDot() {
+        // Empty + "." displays as "$0.|" rather than the bare "$.|".
         assertEquals("0.", InputNormalizer.onDecimal(""))
     }
 

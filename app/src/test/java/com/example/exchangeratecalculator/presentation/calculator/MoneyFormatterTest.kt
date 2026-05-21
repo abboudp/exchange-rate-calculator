@@ -43,27 +43,29 @@ class MoneyFormatterTest {
 
     @Test
     fun formatAmountDisplay_active_groupsIntegerPart() {
-        assertEquals("\$9,999|", MoneyFormatter.formatAmountDisplay("9999", isActive = true))
+        // Cursor is no longer part of the string — rendered as a separate
+        // blinking Compose element in CurrencyAmountRow.
+        assertEquals("\$9,999", MoneyFormatter.formatAmountDisplay("9999", isActive = true))
     }
 
     @Test
     fun formatAmountDisplay_active_groupsMillions() {
-        assertEquals("\$1,234,567|", MoneyFormatter.formatAmountDisplay("1234567", isActive = true))
+        assertEquals("\$1,234,567", MoneyFormatter.formatAmountDisplay("1234567", isActive = true))
     }
 
     @Test
     fun formatAmountDisplay_active_preservesTrailingDecimalUnderThousand() {
-        assertEquals("\$12.|", MoneyFormatter.formatAmountDisplay("12.", isActive = true))
+        assertEquals("\$12.", MoneyFormatter.formatAmountDisplay("12.", isActive = true))
     }
 
     @Test
     fun formatAmountDisplay_active_groupsIntegerAndPreservesTrailingDecimal() {
-        assertEquals("\$1,234.|", MoneyFormatter.formatAmountDisplay("1234.", isActive = true))
+        assertEquals("\$1,234.", MoneyFormatter.formatAmountDisplay("1234.", isActive = true))
     }
 
     @Test
     fun formatAmountDisplay_active_preservesPartialFractionalDigits() {
-        assertEquals("\$0.50|", MoneyFormatter.formatAmountDisplay("0.50", isActive = true))
+        assertEquals("\$0.50", MoneyFormatter.formatAmountDisplay("0.50", isActive = true))
     }
 
     @Test

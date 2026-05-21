@@ -17,7 +17,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import javax.inject.Inject
+
+private val MAX_USDC_OUTPUT = BigDecimal(InputNormalizer.MAX_VALUE)
 
 @HiltViewModel
 class CalculatorViewModel
@@ -82,10 +85,24 @@ class CalculatorViewModel
         }
 
         fun onCurrencySelected(code: String) {
-            _uiState.update { it.copy(pickerState = it.pickerState.copy(isVisible = false)) }
+            _uiState.update { state ->
+                // Carried-over top values (from a prior swap) can exceed the
+                // input cap. Without normalizing, the bottom USDC would clamp
+                // and the two amounts no longer agree mathematically.
+                val normalizedTop = clampToInputCap(state.topAmountText)
+                state.copy(
+                    topAmountText = normalizedTop,
+                    pickerState = state.pickerState.copy(isVisible = false),
+                )
+            }
             viewModelScope.launch {
                 settingsRepository.updateSelectedCurrency(code)
             }
+        }
+
+        private fun clampToInputCap(text: String): String {
+            val value = text.toBigDecimalOrNull() ?: return text
+            return if (value > MAX_USDC_OUTPUT) InputNormalizer.MAX_VALUE else text
         }
 
         fun onTopFieldFocused() = focusField(AmountField.TOP)
@@ -140,6 +157,7 @@ class CalculatorViewModel
             when (this) {
                 is RateResource.Loading -> RateDisplayState.Loading
                 is RateResource.Fresh -> RateDisplayState.Available(formatRate(ticker, fiatCode), isFresh = true)
+                is RateResource.Degraded -> RateDisplayState.Available(formatRate(ticker, fiatCode), isFresh = false)
                 is RateResource.Stale -> RateDisplayState.Available(formatRate(ticker, fiatCode), isFresh = false)
                 is RateResource.Unavailable -> RateDisplayState.Unavailable
             }
@@ -155,7 +173,15 @@ class CalculatorViewModel
             val fromCode = activeFieldCurrency()
             val toCode = inactiveFieldCurrency()
             val quote = convertCurrency(activeText, fromCode, toCode, ticker)
-            return withInactiveText(quote.outputAmount.toPlainString())
+            // Match the same cap that InputNormalizer applies to direct input:
+            // USDC output cannot exceed 999,999.99 regardless of fiat input size.
+            val clamped =
+                if (toCode == USDC_CURRENCY.code && quote.outputAmount > MAX_USDC_OUTPUT) {
+                    MAX_USDC_OUTPUT
+                } else {
+                    quote.outputAmount
+                }
+            return withInactiveText(clamped.toPlainString())
         }
 
         private fun CalculatorUiState.withKeypadFlags(): CalculatorUiState {
@@ -183,6 +209,7 @@ class CalculatorViewModel
         private fun currentTicker(): RateTicker? =
             when (val resource = latestRateResource) {
                 is RateResource.Fresh -> resource.ticker
+                is RateResource.Degraded -> resource.ticker
                 is RateResource.Stale -> resource.ticker
                 else -> null
             }

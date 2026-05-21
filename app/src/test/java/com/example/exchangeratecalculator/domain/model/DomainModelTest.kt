@@ -41,6 +41,7 @@ class DomainModelTest {
             listOf(
                 RateResource.Loading,
                 RateResource.Fresh(ticker(0)),
+                RateResource.Degraded(ticker(0)),
                 RateResource.Stale(ticker(0)),
                 RateResource.Unavailable("no data"),
             )
@@ -49,6 +50,7 @@ class DomainModelTest {
                 when (resource) {
                     is RateResource.Loading -> "loading"
                     is RateResource.Fresh -> "fresh"
+                    is RateResource.Degraded -> "degraded"
                     is RateResource.Stale -> "stale"
                     is RateResource.Unavailable -> "unavailable"
                 }

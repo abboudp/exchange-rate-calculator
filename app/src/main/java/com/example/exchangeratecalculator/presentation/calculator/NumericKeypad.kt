@@ -1,5 +1,6 @@
 package com.example.exchangeratecalculator.presentation.calculator
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,11 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.exchangeratecalculator.presentation.theme.CardBackground
 import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 
 @Composable
@@ -33,8 +34,12 @@ fun NumericKeypad(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(KeyboardBackground)
+                .padding(top = 6.dp, bottom = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         KeypadRow {
             DigitKey('1', null, onDigit)
@@ -62,8 +67,8 @@ fun NumericKeypad(
 @Composable
 private fun KeypadRow(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(64.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth().height(46.dp).padding(horizontal = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         content = content,
     )
 }
@@ -79,20 +84,21 @@ private fun androidx.compose.foundation.layout.RowScope.DigitKey(
         enabled = true,
         testTag = "keypad_$digit",
         modifier = Modifier.weight(1f),
+        hasSurface = true,
     ) {
         Text(
             text = digit.toString(),
             color = PrimaryText,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
+            fontWeight = FontWeight.Normal,
+            fontSize = 25.sp,
         )
-        if (subLabel != null) {
-            Text(
-                text = subLabel,
-                color = PrimaryText.copy(alpha = 0.6f),
-                fontSize = 9.sp,
-            )
-        }
+        // Always render the sub-label slot (empty for "1") so the digit
+        // sits at the same vertical position on every key.
+        Text(
+            text = subLabel.orEmpty(),
+            color = PrimaryText.copy(alpha = 0.6f),
+            fontSize = 9.sp,
+        )
     }
 }
 
@@ -106,12 +112,13 @@ private fun androidx.compose.foundation.layout.RowScope.DecimalKey(
         enabled = enabled,
         testTag = "keypad_dot",
         modifier = Modifier.weight(1f),
+        hasSurface = true,
     ) {
         Text(
             text = ".",
             color = PrimaryText,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
+            fontWeight = FontWeight.Normal,
+            fontSize = 25.sp,
         )
     }
 }
@@ -126,11 +133,12 @@ private fun androidx.compose.foundation.layout.RowScope.BackspaceKey(
         enabled = enabled,
         testTag = "keypad_backspace",
         modifier = Modifier.weight(1f),
+        hasSurface = false,
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Backspace,
             contentDescription = "Backspace",
-            tint = PrimaryText,
+            tint = PrimaryText.copy(alpha = if (enabled) 1f else 0.35f),
         )
     }
 }
@@ -141,19 +149,20 @@ private fun KeyButton(
     enabled: Boolean,
     testTag: String,
     modifier: Modifier = Modifier,
+    hasSurface: Boolean,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
 ) {
     Surface(
         modifier = modifier.testTag(testTag),
-        shape = RoundedCornerShape(12.dp),
-        color = if (enabled) CardBackground else CardBackground.copy(alpha = 0.5f),
-        contentColor = if (enabled) PrimaryText else PrimaryText.copy(alpha = 0.4f),
-        shadowElevation = 1.dp,
+        shape = RoundedCornerShape(5.dp),
+        color = if (hasSurface) KeyBackground else Color.Transparent,
+        contentColor = PrimaryText,
+        shadowElevation = if (hasSurface) 1.dp else 0.dp,
         onClick = onClick,
         enabled = enabled,
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            modifier = Modifier.fillMaxWidth().height(46.dp).padding(4.dp),
             contentAlignment = Alignment.Center,
         ) {
             Column(
@@ -163,3 +172,6 @@ private fun KeyButton(
         }
     }
 }
+
+private val KeyboardBackground = Color(0xFFD1D3D8)
+private val KeyBackground = Color(0xFFFCFCFE)

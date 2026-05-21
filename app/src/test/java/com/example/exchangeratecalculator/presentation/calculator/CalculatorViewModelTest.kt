@@ -169,6 +169,18 @@ class CalculatorViewModelTest {
         }
 
     @Test
+    fun degradedRateResource_mapsToAvailableNotFresh() =
+        runTest {
+            val rateRepo = FakeRateRepository()
+            rateRepo.emit("MXN", RateResource.Degraded(ticker(book = "usdc_mxn")))
+            val viewModel = createViewModel(rateRepository = rateRepo)
+
+            val display = viewModel.uiState.value.rateDisplayState
+            assertTrue("expected Available but got $display", display is RateDisplayState.Available)
+            assertFalse((display as RateDisplayState.Available).isFresh)
+        }
+
+    @Test
     fun unavailableRateResource_mapsToUnavailable() =
         runTest {
             val rateRepo = FakeRateRepository()
