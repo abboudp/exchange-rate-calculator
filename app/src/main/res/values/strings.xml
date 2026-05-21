@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Exchange Rate Calculator</string>
+    <string name="calculator_title">Exchange calculator</string>
+    <string name="choose_currency">Choose currency</string>
 </resources>
