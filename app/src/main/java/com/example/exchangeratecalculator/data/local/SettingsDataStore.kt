@@ -14,27 +14,30 @@ import javax.inject.Inject
 
 val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-class SettingsDataStore @Inject constructor(
-    private val store: DataStore<Preferences>,
-) {
-    fun observeSettings(): Flow<AppSettings> = store.data.map { prefs ->
-        AppSettings(
-            selectedFiatCode = prefs[KEY_SELECTED_FIAT_CODE] ?: DEFAULTS.selectedFiatCode,
-            isSwapped = prefs[KEY_IS_SWAPPED] ?: DEFAULTS.isSwapped,
-        )
-    }
+class SettingsDataStore
+    @Inject
+    constructor(
+        private val store: DataStore<Preferences>,
+    ) {
+        fun observeSettings(): Flow<AppSettings> =
+            store.data.map { prefs ->
+                AppSettings(
+                    selectedFiatCode = prefs[KEY_SELECTED_FIAT_CODE] ?: DEFAULTS.selectedFiatCode,
+                    isSwapped = prefs[KEY_IS_SWAPPED] ?: DEFAULTS.isSwapped,
+                )
+            }
 
-    suspend fun updateSelectedCurrency(code: String) {
-        store.edit { prefs -> prefs[KEY_SELECTED_FIAT_CODE] = code }
-    }
+        suspend fun updateSelectedCurrency(code: String) {
+            store.edit { prefs -> prefs[KEY_SELECTED_FIAT_CODE] = code }
+        }
 
-    suspend fun updateSwapState(isSwapped: Boolean) {
-        store.edit { prefs -> prefs[KEY_IS_SWAPPED] = isSwapped }
-    }
+        suspend fun updateSwapState(isSwapped: Boolean) {
+            store.edit { prefs -> prefs[KEY_IS_SWAPPED] = isSwapped }
+        }
 
-    companion object {
-        private val KEY_SELECTED_FIAT_CODE = stringPreferencesKey("selected_fiat_code")
-        private val KEY_IS_SWAPPED = booleanPreferencesKey("is_swapped")
-        private val DEFAULTS = AppSettings()
+        companion object {
+            private val KEY_SELECTED_FIAT_CODE = stringPreferencesKey("selected_fiat_code")
+            private val KEY_IS_SWAPPED = booleanPreferencesKey("is_swapped")
+            private val DEFAULTS = AppSettings()
+        }
     }
-}

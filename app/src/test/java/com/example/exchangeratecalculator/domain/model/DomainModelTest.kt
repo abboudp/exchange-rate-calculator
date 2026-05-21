@@ -7,14 +7,14 @@ import org.junit.Test
 import java.math.BigDecimal
 
 class DomainModelTest {
-
-    private fun ticker(expiresAtEpochMs: Long) = RateTicker(
-        book = "usdc_mxn",
-        ask = BigDecimal("17.50"),
-        bid = BigDecimal("17.40"),
-        fetchedAtEpochMs = System.currentTimeMillis(),
-        expiresAtEpochMs = expiresAtEpochMs,
-    )
+    private fun ticker(expiresAtEpochMs: Long) =
+        RateTicker(
+            book = "usdc_mxn",
+            ask = BigDecimal("17.50"),
+            bid = BigDecimal("17.40"),
+            fetchedAtEpochMs = System.currentTimeMillis(),
+            expiresAtEpochMs = expiresAtEpochMs,
+        )
 
     @Test
     fun isStale_expired() {
@@ -37,19 +37,21 @@ class DomainModelTest {
 
     @Test
     fun rateResource_exhaustiveness() {
-        val resources: List<RateResource> = listOf(
-            RateResource.Loading,
-            RateResource.Fresh(ticker(0)),
-            RateResource.Stale(ticker(0)),
-            RateResource.Unavailable("no data"),
-        )
+        val resources: List<RateResource> =
+            listOf(
+                RateResource.Loading,
+                RateResource.Fresh(ticker(0)),
+                RateResource.Stale(ticker(0)),
+                RateResource.Unavailable("no data"),
+            )
         resources.forEach { resource ->
-            val label = when (resource) {
-                is RateResource.Loading -> "loading"
-                is RateResource.Fresh -> "fresh"
-                is RateResource.Stale -> "stale"
-                is RateResource.Unavailable -> "unavailable"
-            }
+            val label =
+                when (resource) {
+                    is RateResource.Loading -> "loading"
+                    is RateResource.Fresh -> "fresh"
+                    is RateResource.Stale -> "stale"
+                    is RateResource.Unavailable -> "unavailable"
+                }
             assertTrue(label.isNotEmpty())
         }
     }

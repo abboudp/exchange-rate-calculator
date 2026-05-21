@@ -10,8 +10,10 @@ interface DispatcherProvider {
     val default: CoroutineDispatcher
 }
 
-class DefaultDispatcherProvider @Inject constructor() : DispatcherProvider {
-    override val main: CoroutineDispatcher = Dispatchers.Main.immediate
-    override val io: CoroutineDispatcher = Dispatchers.IO
-    override val default: CoroutineDispatcher = Dispatchers.Default
-}
+class DefaultDispatcherProvider
+    @Inject
+    constructor() : DispatcherProvider {
+        override val main: CoroutineDispatcher = Dispatchers.Main.immediate
+        override val io: CoroutineDispatcher = Dispatchers.IO
+        override val default: CoroutineDispatcher = Dispatchers.Default
+    }

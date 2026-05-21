@@ -16,38 +16,41 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 class SettingsDataStoreTest {
-
     @get:Rule
     val tempFolder = TemporaryFolder()
 
-    private fun newStore(): DataStore<Preferences> = PreferenceDataStoreFactory.create(
-        scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
-        produceFile = { tempFolder.newFile("test.preferences_pb") },
-    )
+    private fun newStore(): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
+            produceFile = { tempFolder.newFile("test.preferences_pb") },
+        )
 
     @Test
-    fun defaults_whenNothingPersisted() = runBlocking {
-        val settings = SettingsDataStore(newStore()).observeSettings().first()
+    fun defaults_whenNothingPersisted() =
+        runBlocking {
+            val settings = SettingsDataStore(newStore()).observeSettings().first()
 
-        assertEquals("MXN", settings.selectedFiatCode)
-        assertFalse(settings.isSwapped)
-    }
-
-    @Test
-    fun updateSelectedCurrency_isPersisted() = runBlocking {
-        val dataStore = SettingsDataStore(newStore())
-
-        dataStore.updateSelectedCurrency("ARS")
-
-        assertEquals("ARS", dataStore.observeSettings().first().selectedFiatCode)
-    }
+            assertEquals("MXN", settings.selectedFiatCode)
+            assertFalse(settings.isSwapped)
+        }
 
     @Test
-    fun updateSwapState_isPersisted() = runBlocking {
-        val dataStore = SettingsDataStore(newStore())
+    fun updateSelectedCurrency_isPersisted() =
+        runBlocking {
+            val dataStore = SettingsDataStore(newStore())
 
-        dataStore.updateSwapState(true)
+            dataStore.updateSelectedCurrency("ARS")
 
-        assertTrue(dataStore.observeSettings().first().isSwapped)
-    }
+            assertEquals("ARS", dataStore.observeSettings().first().selectedFiatCode)
+        }
+
+    @Test
+    fun updateSwapState_isPersisted() =
+        runBlocking {
+            val dataStore = SettingsDataStore(newStore())
+
+            dataStore.updateSwapState(true)
+
+            assertTrue(dataStore.observeSettings().first().isSwapped)
+        }
 }

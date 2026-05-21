@@ -15,16 +15,16 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class RateTickerDaoTest {
-
     private lateinit var database: ExchangeDatabase
     private lateinit var dao: RateTickerDao
 
     @Before
     fun setup() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.inMemoryDatabaseBuilder(context, ExchangeDatabase::class.java)
-            .allowMainThreadQueries()
-            .build()
+        database =
+            Room.inMemoryDatabaseBuilder(context, ExchangeDatabase::class.java)
+                .allowMainThreadQueries()
+                .build()
         dao = database.rateTickerDao()
     }
 
@@ -34,29 +34,32 @@ class RateTickerDaoTest {
     }
 
     @Test
-    fun observeTicker_returnsNullWhenEmpty() = runBlocking {
-        assertNull(dao.observeTicker("usdc_mxn").first())
-    }
+    fun observeTicker_returnsNullWhenEmpty() =
+        runBlocking {
+            assertNull(dao.observeTicker("usdc_mxn").first())
+        }
 
     @Test
-    fun upsertTicker_thenObserve_emitsInserted() = runBlocking {
-        val entity = sampleEntity()
+    fun upsertTicker_thenObserve_emitsInserted() =
+        runBlocking {
+            val entity = sampleEntity()
 
-        dao.upsertTicker(entity)
+            dao.upsertTicker(entity)
 
-        assertEquals(entity, dao.observeTicker(entity.book).first())
-    }
+            assertEquals(entity, dao.observeTicker(entity.book).first())
+        }
 
     @Test
-    fun upsertTicker_replacesOnConflict() = runBlocking {
-        val original = sampleEntity(ask = "18.0000")
-        val updated = sampleEntity(ask = "19.0000")
+    fun upsertTicker_replacesOnConflict() =
+        runBlocking {
+            val original = sampleEntity(ask = "18.0000")
+            val updated = sampleEntity(ask = "19.0000")
 
-        dao.upsertTicker(original)
-        dao.upsertTicker(updated)
+            dao.upsertTicker(original)
+            dao.upsertTicker(updated)
 
-        assertEquals(updated, dao.observeTicker(original.book).first())
-    }
+            assertEquals(updated, dao.observeTicker(original.book).first())
+        }
 
     private fun sampleEntity(
         book: String = "usdc_mxn",
@@ -64,5 +67,11 @@ class RateTickerDaoTest {
         bid: String = "18.4069",
         fetchedAtEpochMs: Long = 1_000L,
         expiresAtEpochMs: Long = 301_000L,
-    ) = RateTickerEntity(book, ask, bid, fetchedAtEpochMs, expiresAtEpochMs)
+    ) = RateTickerEntity(
+        book = book,
+        ask = ask,
+        bid = bid,
+        fetchedAtEpochMs = fetchedAtEpochMs,
+        expiresAtEpochMs = expiresAtEpochMs,
+    )
 }

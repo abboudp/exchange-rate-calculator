@@ -5,16 +5,16 @@ import org.junit.Test
 import java.math.BigDecimal
 
 class RateTickerEntityTest {
-
     @Test
     fun toDomain_preservesBigDecimalPrecision() {
-        val entity = RateTickerEntity(
-            book = "usdc_mxn",
-            ask = "18.4105000000",
-            bid = "18.4069700000",
-            fetchedAtEpochMs = 1_000L,
-            expiresAtEpochMs = 301_000L,
-        )
+        val entity =
+            RateTickerEntity(
+                book = "usdc_mxn",
+                ask = "18.4105000000",
+                bid = "18.4069700000",
+                fetchedAtEpochMs = 1_000L,
+                expiresAtEpochMs = 301_000L,
+            )
 
         val ticker = entity.toDomain()
 

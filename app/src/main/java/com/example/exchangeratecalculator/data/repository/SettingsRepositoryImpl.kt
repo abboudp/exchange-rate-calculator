@@ -8,16 +8,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SettingsRepositoryImpl @Inject constructor(
-    private val dataStore: SettingsDataStore,
-) : SettingsRepository {
-    override fun observeSettings(): Flow<AppSettings> = dataStore.observeSettings()
+class SettingsRepositoryImpl
+    @Inject
+    constructor(
+        private val dataStore: SettingsDataStore,
+    ) : SettingsRepository {
+        override fun observeSettings(): Flow<AppSettings> = dataStore.observeSettings()
 
-    override suspend fun updateSelectedCurrency(code: String) {
-        dataStore.updateSelectedCurrency(code)
-    }
+        override suspend fun updateSelectedCurrency(code: String) {
+            dataStore.updateSelectedCurrency(code)
+        }
 
-    override suspend fun updateSwapState(isSwapped: Boolean) {
-        dataStore.updateSwapState(isSwapped)
+        override suspend fun updateSwapState(isSwapped: Boolean) {
+            dataStore.updateSwapState(isSwapped)
+        }
     }
-}
