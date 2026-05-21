@@ -1,11 +1,12 @@
 package com.example.exchangeratecalculator.presentation.calculator
 
 import com.example.exchangeratecalculator.domain.model.Currency
+import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
 
 enum class AmountField { TOP, BOTTOM }
 
 data class CalculatorUiState(
-    val topCurrencyCode: String = "USDC",
+    val topCurrencyCode: String = USDC_CURRENCY.code,
     val bottomCurrencyCode: String = "MXN",
     val topAmountText: String = "",
     val bottomAmountText: String = "",

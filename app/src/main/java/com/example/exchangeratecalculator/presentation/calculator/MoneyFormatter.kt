@@ -1,17 +1,18 @@
 package com.example.exchangeratecalculator.presentation.calculator
 
+import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
 import java.util.Locale
 
 object MoneyFormatter {
-    private const val USDC_CODE = "USDC"
     private const val USDC_DISPLAY = "USDc"
     private const val DOLLAR_PREFIX = "$"
     private const val CURSOR = "|"
     private const val AMOUNT_FRACTION_DIGITS = 2
     private const val RATE_MAX_FRACTION_DIGITS = 4
+    private const val DECIMAL_SEPARATOR = '.'
 
     private val amountFormat: NumberFormat =
         NumberFormat.getNumberInstance(Locale.US).apply {
@@ -29,6 +30,12 @@ object MoneyFormatter {
             roundingMode = RoundingMode.HALF_UP
         }
 
+    private val integerGroupingFormat: NumberFormat =
+        NumberFormat.getNumberInstance(Locale.US).apply {
+            isGroupingUsed = true
+            maximumFractionDigits = 0
+        }
+
     fun formatAmount(amount: BigDecimal): String = amountFormat.format(amount)
 
     fun formatRate(
@@ -42,10 +49,18 @@ object MoneyFormatter {
         isActive: Boolean,
     ): String {
         if (rawText.isEmpty()) return ""
-        if (isActive) return DOLLAR_PREFIX + rawText + CURSOR
+        if (isActive) return DOLLAR_PREFIX + groupIntegerPart(rawText) + CURSOR
         val amount = rawText.toBigDecimalOrNull() ?: return ""
         return DOLLAR_PREFIX + formatAmount(amount)
     }
 
-    private fun displayCode(code: String): String = if (code == USDC_CODE) USDC_DISPLAY else code
+    private fun groupIntegerPart(rawText: String): String {
+        val dotIndex = rawText.indexOf(DECIMAL_SEPARATOR)
+        if (dotIndex == -1) return groupInteger(rawText)
+        return groupInteger(rawText.substring(0, dotIndex)) + rawText.substring(dotIndex)
+    }
+
+    private fun groupInteger(text: String): String = text.toBigDecimalOrNull()?.let { integerGroupingFormat.format(it) } ?: text
+
+    private fun displayCode(code: String): String = if (code == USDC_CURRENCY.code) USDC_DISPLAY else code
 }
