@@ -27,13 +27,23 @@ class InputNormalizerTest {
     }
 
     @Test
+    fun onDigit_preventsMultipleLeadingZeros() {
+        assertEquals("0", InputNormalizer.onDigit("0", '0'))
+    }
+
+    @Test
+    fun onDigit_replacesLeadingZeroWithDigit() {
+        assertEquals("5", InputNormalizer.onDigit("0", '5'))
+    }
+
+    @Test
     fun onDigit_capsIntegerAtTenDigits() {
         assertEquals("9999999999", InputNormalizer.onDigit("9999999999", '1'))
     }
 
     @Test
-    fun onDecimal_onEmpty_returnsDot() {
-        assertEquals(".", InputNormalizer.onDecimal(""))
+    fun onDecimal_onEmpty_returnsZeroDot() {
+        assertEquals("0.", InputNormalizer.onDecimal(""))
     }
 
     @Test

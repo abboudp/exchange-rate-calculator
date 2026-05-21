@@ -9,6 +9,8 @@ object InputNormalizer {
         current: String,
         digit: Char,
     ): String {
+        if (current == "0") return if (digit == '0') current else digit.toString()
+
         val dotIndex = current.indexOf(DECIMAL_SEPARATOR)
         if (dotIndex == -1) {
             if (current.length >= MAX_INTEGER_DIGITS) return current
@@ -19,7 +21,10 @@ object InputNormalizer {
         return current + digit
     }
 
-    fun onDecimal(current: String): String = if (current.contains(DECIMAL_SEPARATOR)) current else current + DECIMAL_SEPARATOR
+    fun onDecimal(current: String): String {
+        if (current.contains(DECIMAL_SEPARATOR)) return current
+        return if (current.isEmpty()) "0$DECIMAL_SEPARATOR" else current + DECIMAL_SEPARATOR
+    }
 
     fun onBackspace(current: String): String = if (current.isEmpty()) current else current.dropLast(1)
 
