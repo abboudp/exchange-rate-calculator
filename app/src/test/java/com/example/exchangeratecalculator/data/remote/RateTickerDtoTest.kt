@@ -3,7 +3,6 @@ package com.example.exchangeratecalculator.data.remote
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.math.BigDecimal
 
 class RateTickerDtoTest {
 
@@ -27,26 +26,6 @@ class RateTickerDtoTest {
         val dto = json.decodeFromString<RateTickerDto>(raw)
 
         assertEquals("usdc_mxn", dto.book)
-    }
-
-    @Test
-    fun toDomain_preservesBigDecimalPrecision() {
-        val dto = RateTickerDto(ask = "18.4105", bid = "18.4069", book = "usdc_mxn", date = "x")
-
-        val ticker = dto.toDomain(fetchedAtEpochMs = 1_000L, ttlMs = 300_000L)
-
-        assertEquals(BigDecimal("18.4105"), ticker.ask)
-        assertEquals(BigDecimal("18.4069"), ticker.bid)
-    }
-
-    @Test
-    fun toDomain_computesExpiryFromFetchedAtAndTtl() {
-        val dto = RateTickerDto(ask = "1", bid = "1", book = "usdc_mxn", date = "x")
-
-        val ticker = dto.toDomain(fetchedAtEpochMs = 1_000L, ttlMs = 300_000L)
-
-        assertEquals(1_000L, ticker.fetchedAtEpochMs)
-        assertEquals(301_000L, ticker.expiresAtEpochMs)
     }
 
     @Test

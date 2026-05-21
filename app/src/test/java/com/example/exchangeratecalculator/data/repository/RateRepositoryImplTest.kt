@@ -56,6 +56,18 @@ class RateRepositoryImplTest {
     }
 
     @Test
+    fun observeRateTicker_apiSuccess_upsertsAllReturnedBooks() = runTest {
+        val dao = FakeDao()
+        val books = listOf("usdc_mxn", "usdc_ars", "usdc_brl", "usdc_cop")
+        val response = books.map { sampleDto.copy(book = it) }
+        val repo = newRepo(api = FakeApi(response = response), dao = dao)
+
+        repo.observeRateTicker("MXN").take(2).toList()
+
+        assertEquals(books.toSet(), dao.upserts.map { it.book }.toSet())
+    }
+
+    @Test
     fun observeRateTicker_freshCachedEntity_emitsFresh() = runTest {
         val dao = FakeDao().apply {
             ticker.value = entity(expiresAtEpochMs = System.currentTimeMillis() + 60_000L)

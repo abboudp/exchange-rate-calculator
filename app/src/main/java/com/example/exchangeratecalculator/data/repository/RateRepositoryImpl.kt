@@ -34,8 +34,8 @@ class RateRepositoryImpl @Inject constructor(
             while (isActive) {
                 try {
                     val dtos = api.getTickers(FallbackCurrenciesProvider.queryCodes)
-                    dtos.firstOrNull { it.book == book }?.let { dto ->
-                        val now = System.currentTimeMillis()
+                    val now = System.currentTimeMillis()
+                    dtos.forEach { dto ->
                         dao.upsertTicker(
                             dto.toEntity(
                                 fetchedAtEpochMs = now,
