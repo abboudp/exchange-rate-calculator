@@ -1,5 +1,6 @@
 package com.example.exchangeratecalculator.data.remote
 
+import com.example.exchangeratecalculator.data.local.RateTickerEntity
 import com.example.exchangeratecalculator.domain.model.RateTicker
 import kotlinx.serialization.Serializable
 import java.math.BigDecimal
@@ -19,4 +20,13 @@ fun RateTickerDto.toDomain(fetchedAtEpochMs: Long, ttlMs: Long): RateTicker =
         bid = BigDecimal(bid),
         fetchedAtEpochMs = fetchedAtEpochMs,
         expiresAtEpochMs = fetchedAtEpochMs + ttlMs,
+    )
+
+fun RateTickerDto.toEntity(fetchedAtEpochMs: Long, expiresAtEpochMs: Long): RateTickerEntity =
+    RateTickerEntity(
+        book = book,
+        ask = ask,
+        bid = bid,
+        fetchedAtEpochMs = fetchedAtEpochMs,
+        expiresAtEpochMs = expiresAtEpochMs,
     )
