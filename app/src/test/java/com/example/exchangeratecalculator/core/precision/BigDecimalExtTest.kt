@@ -7,7 +7,6 @@ import org.junit.Test
 import java.math.BigDecimal
 
 class BigDecimalExtTest {
-
     @Test
     fun toBigDecimalOrZero_empty_returnsZero() {
         assertEquals(0, BigDecimal.ZERO.compareTo("".toBigDecimalOrZero()))

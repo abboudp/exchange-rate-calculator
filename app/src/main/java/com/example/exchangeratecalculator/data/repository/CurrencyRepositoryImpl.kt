@@ -7,7 +7,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CurrencyRepositoryImpl @Inject constructor() : CurrencyRepository {
-    override suspend fun getAvailableCurrencies(): List<Currency> =
-        FallbackCurrenciesProvider.currencies
-}
+class CurrencyRepositoryImpl
+    @Inject
+    constructor() : CurrencyRepository {
+        override suspend fun getAvailableCurrencies(): List<Currency> = FallbackCurrenciesProvider.currencies
+    }

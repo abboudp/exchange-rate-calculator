@@ -23,98 +23,108 @@ import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RateRepositoryImplTest {
-
-    private val sampleDto = RateTickerDto(
-        ask = "18.4105",
-        bid = "18.4069",
-        book = "usdc_mxn",
-        date = "2026-05-20T12:00:00",
-    )
-
-    @Test
-    fun observeRateTicker_emitsLoadingFirst() = runTest {
-        val repo = newRepo(api = FakeApi(response = emptyList()))
-
-        val first = repo.observeRateTicker("MXN").first()
-
-        assertEquals(RateResource.Loading, first)
-    }
+    private val sampleDto =
+        RateTickerDto(
+            ask = "18.4105",
+            bid = "18.4069",
+            book = "usdc_mxn",
+            date = "2026-05-20T12:00:00",
+        )
 
     @Test
-    fun observeRateTicker_apiSuccess_upsertsWithLowercaseBookAndComputedExpiry() = runTest {
-        val dao = FakeDao()
-        val repo = newRepo(api = FakeApi(response = listOf(sampleDto)), dao = dao)
+    fun observeRateTicker_emitsLoadingFirst() =
+        runTest {
+            val repo = newRepo(api = FakeApi(response = emptyList()))
 
-        val emissions = repo.observeRateTicker("MXN").take(2).toList()
+            val first = repo.observeRateTicker("MXN").first()
 
-        assertEquals(RateResource.Loading, emissions[0])
-        assertTrue("expected Fresh after upsert", emissions[1] is RateResource.Fresh)
-        assertEquals(1, dao.upserts.size)
-        val upserted = dao.upserts.single()
-        assertEquals("usdc_mxn", upserted.book)
-        assertEquals(RateRepositoryImpl.TTL_MS, upserted.expiresAtEpochMs - upserted.fetchedAtEpochMs)
-    }
-
-    @Test
-    fun observeRateTicker_apiSuccess_upsertsAllReturnedBooks() = runTest {
-        val dao = FakeDao()
-        val books = listOf("usdc_mxn", "usdc_ars", "usdc_brl", "usdc_cop")
-        val response = books.map { sampleDto.copy(book = it) }
-        val repo = newRepo(api = FakeApi(response = response), dao = dao)
-
-        repo.observeRateTicker("MXN").take(2).toList()
-
-        assertEquals(books.toSet(), dao.upserts.map { it.book }.toSet())
-    }
-
-    @Test
-    fun observeRateTicker_freshCachedEntity_emitsFresh() = runTest {
-        val dao = FakeDao().apply {
-            ticker.value = entity(expiresAtEpochMs = System.currentTimeMillis() + 60_000L)
+            assertEquals(RateResource.Loading, first)
         }
-        val repo = newRepo(dao = dao)
-
-        val emissions = repo.observeRateTicker("MXN").take(2).toList()
-
-        assertEquals(RateResource.Loading, emissions[0])
-        assertTrue("expected Fresh but got ${emissions[1]}", emissions[1] is RateResource.Fresh)
-    }
 
     @Test
-    fun observeRateTicker_staleCachedEntity_emitsStale() = runTest {
-        val dao = FakeDao().apply {
-            ticker.value = entity(expiresAtEpochMs = System.currentTimeMillis() - 60_000L)
+    fun observeRateTicker_apiSuccess_upsertsWithLowercaseBookAndComputedExpiry() =
+        runTest {
+            val dao = FakeDao()
+            val repo = newRepo(api = FakeApi(response = listOf(sampleDto)), dao = dao)
+
+            val emissions = repo.observeRateTicker("MXN").take(2).toList()
+
+            assertEquals(RateResource.Loading, emissions[0])
+            assertTrue("expected Fresh after upsert", emissions[1] is RateResource.Fresh)
+            assertEquals(1, dao.upserts.size)
+            val upserted = dao.upserts.single()
+            assertEquals("usdc_mxn", upserted.book)
+            assertEquals(RateRepositoryImpl.TTL_MS, upserted.expiresAtEpochMs - upserted.fetchedAtEpochMs)
         }
-        val repo = newRepo(dao = dao)
-
-        val emissions = repo.observeRateTicker("MXN").take(2).toList()
-
-        assertEquals(RateResource.Loading, emissions[0])
-        assertTrue("expected Stale but got ${emissions[1]}", emissions[1] is RateResource.Stale)
-    }
 
     @Test
-    fun observeRateTicker_networkFailure_servesCachedStaleWithoutCrashing() = runTest {
-        val dao = FakeDao().apply {
-            ticker.value = entity(expiresAtEpochMs = System.currentTimeMillis() - 60_000L)
+    fun observeRateTicker_apiSuccess_upsertsAllReturnedBooks() =
+        runTest {
+            val dao = FakeDao()
+            val books = listOf("usdc_mxn", "usdc_ars", "usdc_brl", "usdc_cop")
+            val response = books.map { sampleDto.copy(book = it) }
+            val repo = newRepo(api = FakeApi(response = response), dao = dao)
+
+            repo.observeRateTicker("MXN").take(2).toList()
+
+            assertEquals(books.toSet(), dao.upserts.map { it.book }.toSet())
         }
-        val repo = newRepo(api = FakeApi(error = IOException("offline")), dao = dao)
 
-        val emissions = repo.observeRateTicker("MXN").take(2).toList()
+    @Test
+    fun observeRateTicker_freshCachedEntity_emitsFresh() =
+        runTest {
+            val dao =
+                FakeDao().apply {
+                    ticker.value = entity(expiresAtEpochMs = System.currentTimeMillis() + 60_000L)
+                }
+            val repo = newRepo(dao = dao)
 
-        assertEquals(RateResource.Loading, emissions[0])
-        assertTrue(emissions[1] is RateResource.Stale)
-        assertEquals(0, dao.upserts.size)
-    }
+            val emissions = repo.observeRateTicker("MXN").take(2).toList()
+
+            assertEquals(RateResource.Loading, emissions[0])
+            assertTrue("expected Fresh but got ${emissions[1]}", emissions[1] is RateResource.Fresh)
+        }
+
+    @Test
+    fun observeRateTicker_staleCachedEntity_emitsStale() =
+        runTest {
+            val dao =
+                FakeDao().apply {
+                    ticker.value = entity(expiresAtEpochMs = System.currentTimeMillis() - 60_000L)
+                }
+            val repo = newRepo(dao = dao)
+
+            val emissions = repo.observeRateTicker("MXN").take(2).toList()
+
+            assertEquals(RateResource.Loading, emissions[0])
+            assertTrue("expected Stale but got ${emissions[1]}", emissions[1] is RateResource.Stale)
+        }
+
+    @Test
+    fun observeRateTicker_networkFailure_servesCachedStaleWithoutCrashing() =
+        runTest {
+            val dao =
+                FakeDao().apply {
+                    ticker.value = entity(expiresAtEpochMs = System.currentTimeMillis() - 60_000L)
+                }
+            val repo = newRepo(api = FakeApi(error = IOException("offline")), dao = dao)
+
+            val emissions = repo.observeRateTicker("MXN").take(2).toList()
+
+            assertEquals(RateResource.Loading, emissions[0])
+            assertTrue(emissions[1] is RateResource.Stale)
+            assertEquals(0, dao.upserts.size)
+        }
 
     private fun TestScope.newRepo(
         api: DolarApi = FakeApi(response = emptyList()),
         dao: FakeDao = FakeDao(),
-    ): RateRepositoryImpl = RateRepositoryImpl(
-        api = api,
-        dao = dao,
-        dispatchers = TestDispatcherProvider(UnconfinedTestDispatcher(testScheduler)),
-    )
+    ): RateRepositoryImpl =
+        RateRepositoryImpl(
+            api = api,
+            dao = dao,
+            dispatchers = TestDispatcherProvider(UnconfinedTestDispatcher(testScheduler)),
+        )
 
     private fun entity(
         book: String = "usdc_mxn",

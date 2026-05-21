@@ -20,46 +20,48 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class RateRepositoryImpl @Inject constructor(
-    private val api: DolarApi,
-    private val dao: RateTickerDao,
-    private val dispatchers: DispatcherProvider,
-) : RateRepository {
+class RateRepositoryImpl
+    @Inject
+    constructor(
+        private val api: DolarApi,
+        private val dao: RateTickerDao,
+        private val dispatchers: DispatcherProvider,
+    ) : RateRepository {
+        override fun observeRateTicker(fiatCode: String): Flow<RateResource> =
+            channelFlow {
+                val book = "usdc_${fiatCode.lowercase()}"
+                send(RateResource.Loading)
 
-    override fun observeRateTicker(fiatCode: String): Flow<RateResource> = channelFlow {
-        val book = "usdc_${fiatCode.lowercase()}"
-        send(RateResource.Loading)
-
-        launch {
-            while (isActive) {
-                try {
-                    val dtos = api.getTickers(FallbackCurrenciesProvider.queryCodes)
-                    val now = System.currentTimeMillis()
-                    dtos.forEach { dto ->
-                        dao.upsertTicker(
-                            dto.toEntity(
-                                fetchedAtEpochMs = now,
-                                expiresAtEpochMs = now + TTL_MS,
-                            ),
-                        )
+                launch {
+                    while (isActive) {
+                        try {
+                            val dtos = api.getTickers(FallbackCurrenciesProvider.queryCodes)
+                            val now = System.currentTimeMillis()
+                            dtos.forEach { dto ->
+                                dao.upsertTicker(
+                                    dto.toEntity(
+                                        fetchedAtEpochMs = now,
+                                        expiresAtEpochMs = now + TTL_MS,
+                                    ),
+                                )
+                            }
+                        } catch (e: Exception) {
+                            if (e is CancellationException) throw e
+                        }
+                        delay(POLL_INTERVAL_MS)
                     }
-                } catch (e: Exception) {
-                    if (e is CancellationException) throw e
                 }
-                delay(POLL_INTERVAL_MS)
-            }
-        }
 
-        dao.observeTicker(book).collect { entity ->
-            if (entity != null) {
-                val ticker = entity.toDomain()
-                send(if (ticker.isStale) RateResource.Stale(ticker) else RateResource.Fresh(ticker))
-            }
-        }
-    }.flowOn(dispatchers.io)
+                dao.observeTicker(book).collect { entity ->
+                    if (entity != null) {
+                        val ticker = entity.toDomain()
+                        send(if (ticker.isStale) RateResource.Stale(ticker) else RateResource.Fresh(ticker))
+                    }
+                }
+            }.flowOn(dispatchers.io)
 
-    companion object {
-        const val TTL_MS = 5 * 60 * 1000L
-        const val POLL_INTERVAL_MS = 30_000L
+        companion object {
+            const val TTL_MS = 5 * 60 * 1000L
+            const val POLL_INTERVAL_MS = 30_000L
+        }
     }
-}
