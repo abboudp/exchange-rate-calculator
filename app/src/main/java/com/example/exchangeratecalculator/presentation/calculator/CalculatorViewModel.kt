@@ -51,37 +51,25 @@ class CalculatorViewModel
             }
         }
 
-        fun onDigitPressed(digit: Char) {
-            setActiveFieldText(InputNormalizer.onDigit(activeFieldText(), digit))
-            refreshKeypadFlags()
-            recomputeInactiveField()
-        }
+        fun onDigitPressed(digit: Char) = transformActiveText { InputNormalizer.onDigit(it, digit) }
 
-        fun onDecimalPressed() {
-            setActiveFieldText(InputNormalizer.onDecimal(activeFieldText()))
-            refreshKeypadFlags()
-            recomputeInactiveField()
-        }
+        fun onDecimalPressed() = transformActiveText { InputNormalizer.onDecimal(it) }
 
-        fun onBackspacePressed() {
-            setActiveFieldText(InputNormalizer.onBackspace(activeFieldText()))
-            refreshKeypadFlags()
-            recomputeInactiveField()
-        }
+        fun onBackspacePressed() = transformActiveText { InputNormalizer.onBackspace(it) }
 
         fun onSwapPressed() {
+            val newIsSwapped = !_uiState.value.isSwapped
             _uiState.update { state ->
                 state.copy(
                     topCurrencyCode = state.bottomCurrencyCode,
                     bottomCurrencyCode = state.topCurrencyCode,
                     topAmountText = state.bottomAmountText,
                     bottomAmountText = state.topAmountText,
-                    isSwapped = !state.isSwapped,
-                )
+                    isSwapped = newIsSwapped,
+                ).withKeypadFlags()
             }
-            refreshKeypadFlags()
             viewModelScope.launch {
-                settingsRepository.updateSwapState(_uiState.value.isSwapped)
+                settingsRepository.updateSwapState(newIsSwapped)
             }
         }
 
@@ -100,18 +88,24 @@ class CalculatorViewModel
             }
         }
 
-        fun onTopFieldFocused() {
-            if (_uiState.value.activeField == AmountField.TOP) return
-            _uiState.update { it.copy(activeField = AmountField.TOP) }
-            refreshKeypadFlags()
-            recomputeInactiveField()
+        fun onTopFieldFocused() = focusField(AmountField.TOP)
+
+        fun onBottomFieldFocused() = focusField(AmountField.BOTTOM)
+
+        private fun focusField(field: AmountField) {
+            if (_uiState.value.activeField == field) return
+            val ticker = currentTicker()
+            _uiState.update { state ->
+                state.copy(activeField = field).withRecomputedInactive(ticker).withKeypadFlags()
+            }
         }
 
-        fun onBottomFieldFocused() {
-            if (_uiState.value.activeField == AmountField.BOTTOM) return
-            _uiState.update { it.copy(activeField = AmountField.BOTTOM) }
-            refreshKeypadFlags()
-            recomputeInactiveField()
+        private fun transformActiveText(transform: (String) -> String) {
+            val ticker = currentTicker()
+            _uiState.update { state ->
+                val newActive = transform(state.activeText())
+                state.withActiveText(newActive).withRecomputedInactive(ticker).withKeypadFlags()
+            }
         }
 
         private fun applySettings(settings: AppSettings) {
@@ -133,92 +127,58 @@ class CalculatorViewModel
                 viewModelScope.launch {
                     observeRateTicker(fiatCode).collect { resource ->
                         latestRateResource = resource
-                        _uiState.update { it.copy(rateDisplayState = resource.toDisplayState()) }
-                        recomputeInactiveField()
+                        val ticker = currentTicker()
+                        _uiState.update { state ->
+                            state.copy(rateDisplayState = resource.toDisplayState(state.pickerState.selectedCode))
+                                .withRecomputedInactive(ticker)
+                        }
                     }
                 }
         }
 
-        private fun RateResource.toDisplayState(): RateDisplayState =
+        private fun RateResource.toDisplayState(fiatCode: String): RateDisplayState =
             when (this) {
                 is RateResource.Loading -> RateDisplayState.Loading
-                is RateResource.Fresh ->
-                    RateDisplayState.Available(
-                        text = formatRateText(ticker),
-                        isFresh = true,
-                    )
-                is RateResource.Stale ->
-                    RateDisplayState.Available(
-                        text = formatRateText(ticker),
-                        isFresh = false,
-                    )
+                is RateResource.Fresh -> RateDisplayState.Available(formatRate(ticker, fiatCode), isFresh = true)
+                is RateResource.Stale -> RateDisplayState.Available(formatRate(ticker, fiatCode), isFresh = false)
                 is RateResource.Unavailable -> RateDisplayState.Unavailable
             }
 
-        private fun formatRateText(ticker: RateTicker): String {
-            val fiatCode = _uiState.value.pickerState.selectedCode
-            return MoneyFormatter.formatRate(ticker.bid, USDC_CURRENCY.code, fiatCode)
+        private fun formatRate(
+            ticker: RateTicker,
+            fiatCode: String,
+        ): String = MoneyFormatter.formatRate(ticker.bid, USDC_CURRENCY.code, fiatCode)
+
+        private fun CalculatorUiState.withRecomputedInactive(ticker: RateTicker?): CalculatorUiState {
+            val activeText = activeText()
+            if (activeText.isBlank() || ticker == null) return withInactiveText("")
+            val fromCode = activeFieldCurrency()
+            val toCode = inactiveFieldCurrency()
+            val quote = convertCurrency(activeText, fromCode, toCode, ticker)
+            return withInactiveText(quote.outputAmount.toPlainString())
         }
 
-        private fun recomputeInactiveField() {
-            val activeText = activeFieldText()
-            if (activeText.isBlank()) {
-                setInactiveFieldText("")
-                return
-            }
-            val ticker = currentTicker()
-            if (ticker == null) {
-                setInactiveFieldText("")
-                return
-            }
-            val quote = convertCurrency(activeText, activeFieldCurrency(), inactiveFieldCurrency(), ticker)
-            setInactiveFieldText(MoneyFormatter.formatAmount(quote.outputAmount))
+        private fun CalculatorUiState.withKeypadFlags(): CalculatorUiState {
+            val activeText = activeText()
+            return copy(
+                canBackspace = InputNormalizer.canBackspace(activeText),
+                canInsertDecimal = InputNormalizer.canInsertDecimal(activeText),
+            )
         }
 
-        private fun refreshKeypadFlags() {
-            val text = activeFieldText()
-            _uiState.update {
-                it.copy(
-                    canBackspace = InputNormalizer.canBackspace(text),
-                    canInsertDecimal = InputNormalizer.canInsertDecimal(text),
-                )
-            }
-        }
+        private fun CalculatorUiState.activeText(): String = if (activeField == AmountField.TOP) topAmountText else bottomAmountText
 
-        private fun activeFieldText(): String {
-            val state = _uiState.value
-            return if (state.activeField == AmountField.TOP) state.topAmountText else state.bottomAmountText
-        }
+        private fun CalculatorUiState.withActiveText(text: String): CalculatorUiState =
+            if (activeField == AmountField.TOP) copy(topAmountText = text) else copy(bottomAmountText = text)
 
-        private fun setActiveFieldText(text: String) {
-            _uiState.update {
-                if (it.activeField == AmountField.TOP) {
-                    it.copy(topAmountText = text)
-                } else {
-                    it.copy(bottomAmountText = text)
-                }
-            }
-        }
+        private fun CalculatorUiState.withInactiveText(text: String): CalculatorUiState =
+            if (activeField == AmountField.TOP) copy(bottomAmountText = text) else copy(topAmountText = text)
 
-        private fun setInactiveFieldText(text: String) {
-            _uiState.update {
-                if (it.activeField == AmountField.TOP) {
-                    it.copy(bottomAmountText = text)
-                } else {
-                    it.copy(topAmountText = text)
-                }
-            }
-        }
+        private fun CalculatorUiState.activeFieldCurrency(): String =
+            if (activeField == AmountField.TOP) topCurrencyCode else bottomCurrencyCode
 
-        private fun activeFieldCurrency(): String {
-            val state = _uiState.value
-            return if (state.activeField == AmountField.TOP) state.topCurrencyCode else state.bottomCurrencyCode
-        }
-
-        private fun inactiveFieldCurrency(): String {
-            val state = _uiState.value
-            return if (state.activeField == AmountField.TOP) state.bottomCurrencyCode else state.topCurrencyCode
-        }
+        private fun CalculatorUiState.inactiveFieldCurrency(): String =
+            if (activeField == AmountField.TOP) bottomCurrencyCode else topCurrencyCode
 
         private fun currentTicker(): RateTicker? =
             when (val resource = latestRateResource) {

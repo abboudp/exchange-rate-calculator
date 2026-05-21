@@ -152,8 +152,8 @@ class CalculatorViewModelTest {
             val state = viewModel.uiState.value
             assertFalse(state.pickerState.isVisible)
             assertEquals("ARS", state.bottomCurrencyCode)
-            // 1 USDC * 1500 ARS bid = 1,500.00
-            assertEquals("1,500.00", state.bottomAmountText)
+            // 1 USDC * 1500 ARS bid = 1500.00; state holds raw, comma grouping is a display concern.
+            assertEquals("1500.00", state.bottomAmountText)
         }
 
     @Test
@@ -176,6 +176,31 @@ class CalculatorViewModelTest {
             val viewModel = createViewModel(rateRepository = rateRepo)
 
             assertEquals(RateDisplayState.Unavailable, viewModel.uiState.value.rateDisplayState)
+        }
+
+    @Test
+    fun focusChange_doesNotCorruptValueWithGroupingCommas() =
+        runTest {
+            // Regression: previously the inactive field was stored as a
+            // comma-formatted string. Once focus moved to it, the now-active
+            // text was unparseable and conversion silently fell back to zero.
+            val rateRepo = FakeRateRepository()
+            rateRepo.emit(
+                "MXN",
+                freshTicker(book = "usdc_mxn", bid = "1500.00", ask = "1510.00"),
+            )
+            val viewModel = createViewModel(rateRepository = rateRepo)
+            viewModel.onDigitPressed('1')
+            assertEquals("1500.00", viewModel.uiState.value.bottomAmountText)
+
+            viewModel.onBottomFieldFocused()
+
+            // Bottom is now active with raw "1500.00". Recomputed top should
+            // be 1500 / 1510 ask ≈ 0.99 USDC, never 0.
+            val state = viewModel.uiState.value
+            assertEquals("1500.00", state.bottomAmountText)
+            assertEquals(AmountField.BOTTOM, state.activeField)
+            assertEquals("0.99", state.topAmountText)
         }
 
     @Test
