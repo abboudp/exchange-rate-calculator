@@ -7,12 +7,13 @@ import com.example.exchangeratecalculator.data.remote.DolarApi
 import com.example.exchangeratecalculator.data.remote.FallbackCurrenciesProvider
 import com.example.exchangeratecalculator.data.remote.toEntity
 import com.example.exchangeratecalculator.domain.model.RateResource
-import com.example.exchangeratecalculator.domain.model.isStale
 import com.example.exchangeratecalculator.domain.repository.RateRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -31,37 +32,44 @@ class RateRepositoryImpl
             channelFlow {
                 val book = "usdc_${fiatCode.lowercase()}"
                 send(RateResource.Loading)
+                // Flag whether the most recent poll attempt failed. Used only
+                // to distinguish "still trying" from "offline with no cache"
+                // — once a cached row exists we serve it regardless of this.
+                val pollFailedFlow = MutableStateFlow(false)
 
                 launch {
                     while (isActive) {
-                        try {
-                            val dtos = api.getTickers(FallbackCurrenciesProvider.queryCodes)
-                            val now = System.currentTimeMillis()
-                            dtos.forEach { dto ->
-                                dao.upsertTicker(
-                                    dto.toEntity(
-                                        fetchedAtEpochMs = now,
-                                        expiresAtEpochMs = now + TTL_MS,
-                                    ),
-                                )
+                        val succeeded =
+                            try {
+                                val dtos = api.getTickers(FallbackCurrenciesProvider.queryCodes)
+                                val now = System.currentTimeMillis()
+                                dtos.forEach { dto -> dao.upsertTicker(dto.toEntity(fetchedAtEpochMs = now)) }
+                                pollFailedFlow.value = false
+                                true
+                            } catch (e: Exception) {
+                                if (e is CancellationException) throw e
+                                pollFailedFlow.value = true
+                                false
                             }
-                        } catch (e: Exception) {
-                            if (e is CancellationException) throw e
-                        }
-                        delay(POLL_INTERVAL_MS)
+                        // After a failed poll, retry quickly so reconnection
+                        // recovers within seconds instead of a full poll cycle.
+                        delay(if (succeeded) POLL_INTERVAL_MS else RETRY_INTERVAL_MS)
                     }
                 }
 
-                dao.observeTicker(book).collect { entity ->
-                    if (entity != null) {
-                        val ticker = entity.toDomain()
-                        send(if (ticker.isStale) RateResource.Stale(ticker) else RateResource.Fresh(ticker))
+                combine(dao.observeTicker(book), pollFailedFlow) { entity, failed ->
+                    entity to failed
+                }.collect { (entity, failed) ->
+                    when {
+                        entity != null -> send(RateResource.Available(entity.toDomain()))
+                        failed -> send(RateResource.Unavailable("offline"))
+                        // else: pre-first-poll with no cache — stay Loading.
                     }
                 }
             }.flowOn(dispatchers.io)
 
         companion object {
-            const val TTL_MS = 5 * 60 * 1000L
-            const val POLL_INTERVAL_MS = 30_000L
+            const val POLL_INTERVAL_MS = 60_000L
+            const val RETRY_INTERVAL_MS = 5_000L
         }
     }

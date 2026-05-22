@@ -11,14 +11,10 @@ data class RateTickerDto(
     val date: String,
 )
 
-fun RateTickerDto.toEntity(
-    fetchedAtEpochMs: Long,
-    expiresAtEpochMs: Long,
-): RateTickerEntity =
+fun RateTickerDto.toEntity(fetchedAtEpochMs: Long): RateTickerEntity =
     RateTickerEntity(
         book = book,
         ask = ask,
         bid = bid,
         fetchedAtEpochMs = fetchedAtEpochMs,
-        expiresAtEpochMs = expiresAtEpochMs,
     )

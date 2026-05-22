@@ -27,22 +27,40 @@ class InputNormalizerTest {
     }
 
     @Test
-    fun onDigit_preventsMultipleLeadingZeros() {
+    fun onDigit_zeroAfterZero_keepsSingleZero() {
         assertEquals("0", InputNormalizer.onDigit("0", '0'))
     }
 
     @Test
-    fun onDigit_replacesLeadingZeroWithDigit() {
+    fun onDigit_nonZeroAfterZero_replacesLeadingZero() {
         assertEquals("5", InputNormalizer.onDigit("0", '5'))
     }
 
     @Test
-    fun onDigit_capsIntegerAtTenDigits() {
-        assertEquals("9999999999", InputNormalizer.onDigit("9999999999", '1'))
+    fun onDigit_sevenZerosInARow_staysAtSingleZero() {
+        // Leading-zero rule prevents "00000…" buildup.
+        var current = ""
+        repeat(7) { current = InputNormalizer.onDigit(current, '0') }
+        assertEquals("0", current)
+    }
+
+    @Test
+    fun onDigit_atStructuralLimit_isANoOp() {
+        // Structural ceiling = 15 integer digits. Past it, additional digits
+        // are dropped silently — the economic cap (USDC notional) is enforced
+        // at the ViewModel layer.
+        val fifteenNines = "999999999999999"
+        assertEquals(fifteenNines, InputNormalizer.onDigit(fifteenNines, '1'))
+    }
+
+    @Test
+    fun onDigit_allowsFifteenthIntegerDigit() {
+        assertEquals("999999999999999", InputNormalizer.onDigit("99999999999999", '9'))
     }
 
     @Test
     fun onDecimal_onEmpty_returnsZeroDot() {
+        // Empty + "." displays as "$0.|" rather than the bare "$.|".
         assertEquals("0.", InputNormalizer.onDecimal(""))
     }
 

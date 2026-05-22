@@ -1,14 +1,20 @@
 package com.example.exchangeratecalculator.presentation.calculator
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -18,15 +24,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.exchangeratecalculator.presentation.theme.BrandGreen
+import androidx.compose.ui.unit.sp
 import com.example.exchangeratecalculator.presentation.theme.CardBackground
+import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 
 @Composable
 fun CurrencyAmountRow(
@@ -35,72 +45,173 @@ fun CurrencyAmountRow(
     amountDisplay: String,
     isActive: Boolean,
     onCurrencyClick: () -> Unit,
-    onAmountFieldClick: () -> Unit,
     modifier: Modifier = Modifier,
     testTag: String,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth().testTag(testTag),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBackground),
-        border = if (isActive) BorderStroke(1.5.dp, BrandGreen) else null,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    val displayCode = if (currencyCode == "USDC") "USDc" else currencyCode
+    val cardModifier = modifier.fillMaxWidth().height(66.dp).testTag(testTag)
+    val cardShape = RoundedCornerShape(16.dp)
+    val cardColors = CardDefaults.cardColors(containerColor = CardBackground)
+    val cardContent: @Composable () -> Unit = {
+        CardContent(
+            displayCode = displayCode,
+            currencyCode = currencyCode,
+            isSelectable = isSelectable,
+            amountDisplay = amountDisplay,
+            isActive = isActive,
+        )
+    }
+
+    if (isSelectable) {
+        Card(
+            onClick = onCurrencyClick,
+            modifier = cardModifier,
+            shape = cardShape,
+            colors = cardColors,
+            elevation =
+                CardDefaults.cardElevation(
+                    defaultElevation = 0.dp,
+                    pressedElevation = 4.dp,
+                ),
         ) {
-            Row(
-                modifier =
-                    Modifier
-                        .then(if (isSelectable) Modifier.clickable { onCurrencyClick() } else Modifier)
-                        .padding(end = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                CurrencyFlagPlaceholder(currencyCode)
-                Text(
-                    text = currencyCode,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                if (isSelectable) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = "Choose currency",
-                    )
-                }
-            }
-            Text(
-                text = amountDisplay,
-                style = MaterialTheme.typography.titleLarge,
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .clickable { onAmountFieldClick() }
-                        .padding(start = 8.dp),
-                textAlign = TextAlign.End,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            cardContent()
+        }
+    } else {
+        Card(
+            modifier = cardModifier,
+            shape = cardShape,
+            colors = cardColors,
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        ) {
+            cardContent()
         }
     }
 }
 
 @Composable
-private fun CurrencyFlagPlaceholder(code: String) {
-    androidx.compose.foundation.layout.Box(
+private fun CardContent(
+    displayCode: String,
+    currencyCode: String,
+    isSelectable: Boolean,
+    amountDisplay: String,
+    isActive: Boolean,
+) {
+    Row(
         modifier =
             Modifier
-                .size(28.dp)
-                .background(color = Color(0xFFE5E5EA), shape = CircleShape),
-        contentAlignment = Alignment.Center,
+                .fillMaxWidth()
+                .height(66.dp)
+                .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = code.take(1),
-            style = MaterialTheme.typography.labelMedium,
+        Row(
+            modifier = Modifier.padding(end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            CurrencyFlagIcon(currencyCode)
+            Text(
+                text = displayCode,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = PrimaryText,
+            )
+            if (isSelectable) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = "Choose currency",
+                    tint = PrimaryText.copy(alpha = 0.5f),
+                    modifier = Modifier.size(16.dp),
+                )
+            }
+        }
+        AmountText(
+            amountDisplay = amountDisplay,
+            isActive = isActive,
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
         )
     }
 }
+
+@Composable
+private fun AmountText(
+    amountDisplay: String,
+    isActive: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End,
+    ) {
+        Text(
+            text = amountDisplay,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = PrimaryText,
+            textAlign = TextAlign.End,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (isActive) {
+            BlinkingCursor()
+        }
+    }
+}
+
+@Composable
+private fun BlinkingCursor() {
+    val transition = rememberInfiniteTransition(label = "amountCursor")
+    val alpha by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 650, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "amountCursorAlpha",
+    )
+    Box(
+        modifier =
+            Modifier
+                .padding(start = 2.dp)
+                .width(2.dp)
+                .height(20.dp)
+                .alpha(alpha)
+                .background(Color(0xFF2F7CFF), shape = RoundedCornerShape(1.dp)),
+    )
+}
+
+@Composable
+private fun CurrencyFlagIcon(code: String) {
+    Box(
+        modifier = Modifier.size(16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = flagFor(code),
+            fontSize = 14.sp,
+            lineHeight = 16.sp,
+        )
+    }
+}
+
+private fun flagFor(code: String): String =
+    when (code) {
+        "USDC" -> "🇺🇸"
+        "MXN" -> "🇲🇽"
+        "COP" -> "🇨🇴"
+        "ARS" -> "🇦🇷"
+        "BRL" -> "🇧🇷"
+        "EURC" -> "🇪🇺"
+        else -> code.take(1)
+    }
 
 const val CURRENCY_ROW_TOP_TAG = "currency_row_top"
 const val CURRENCY_ROW_BOTTOM_TAG = "currency_row_bottom"

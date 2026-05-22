@@ -9,7 +9,6 @@ import java.util.Locale
 object MoneyFormatter {
     private const val USDC_DISPLAY = "USDc"
     private const val DOLLAR_PREFIX = "$"
-    private const val CURSOR = "|"
     private const val AMOUNT_FRACTION_DIGITS = 2
     private const val RATE_MAX_FRACTION_DIGITS = 4
     private const val DECIMAL_SEPARATOR = '.'
@@ -49,7 +48,7 @@ object MoneyFormatter {
         isActive: Boolean,
     ): String {
         if (rawText.isEmpty()) return ""
-        if (isActive) return DOLLAR_PREFIX + groupIntegerPart(rawText) + CURSOR
+        if (isActive) return DOLLAR_PREFIX + groupIntegerPart(rawText)
         val amount = rawText.toBigDecimalOrNull() ?: return ""
         return DOLLAR_PREFIX + formatAmount(amount)
     }

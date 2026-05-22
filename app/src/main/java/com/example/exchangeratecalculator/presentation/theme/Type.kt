@@ -12,18 +12,40 @@ val ExchangeTypography =
             TextStyle(
                 fontFamily = FontFamily.Default,
                 fontWeight = FontWeight.Bold,
-                fontSize = 28.sp,
+                fontSize = 30.sp,
+                lineHeight = 33.sp,
+                letterSpacing = 0.sp,
             ),
         titleLarge =
             TextStyle(
                 fontFamily = FontFamily.Default,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
+                lineHeight = 24.sp,
+                letterSpacing = 0.sp,
+            ),
+        titleMedium =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                letterSpacing = 0.sp,
             ),
         labelMedium =
             TextStyle(
                 fontFamily = FontFamily.Default,
                 fontWeight = FontWeight.Normal,
-                fontSize = 13.sp,
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                letterSpacing = 0.sp,
+            ),
+        labelSmall =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 9.sp,
+                lineHeight = 9.sp,
+                letterSpacing = 0.sp,
             ),
     )

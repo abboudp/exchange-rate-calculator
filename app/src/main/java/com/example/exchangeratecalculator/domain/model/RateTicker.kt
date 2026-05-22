@@ -7,7 +7,9 @@ data class RateTicker(
     val ask: BigDecimal,
     val bid: BigDecimal,
     val fetchedAtEpochMs: Long,
-    val expiresAtEpochMs: Long,
 )
 
-val RateTicker.isStale: Boolean get() = System.currentTimeMillis() > expiresAtEpochMs
+const val STALE_THRESHOLD_MS = 2 * 60 * 1000L
+
+val RateTicker.isStale: Boolean
+    get() = System.currentTimeMillis() - fetchedAtEpochMs > STALE_THRESHOLD_MS

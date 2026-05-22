@@ -13,7 +13,6 @@ class RateTickerEntityTest {
                 ask = "18.4105000000",
                 bid = "18.4069700000",
                 fetchedAtEpochMs = 1_000L,
-                expiresAtEpochMs = 301_000L,
             )
 
         val ticker = entity.toDomain()
@@ -22,6 +21,5 @@ class RateTickerEntityTest {
         assertEquals(BigDecimal("18.4069700000"), ticker.bid)
         assertEquals("usdc_mxn", ticker.book)
         assertEquals(1_000L, ticker.fetchedAtEpochMs)
-        assertEquals(301_000L, ticker.expiresAtEpochMs)
     }
 }
