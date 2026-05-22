@@ -37,26 +37,25 @@ class InputNormalizerTest {
     }
 
     @Test
-    fun onDigit_sevenZerosInARow_neverReachesCapAndStaysAtZero() {
-        // Regression: leading-zero rule prevents "00000" buildup that would
-        // otherwise overflow and clamp to MAX_VALUE.
+    fun onDigit_sevenZerosInARow_staysAtSingleZero() {
+        // Leading-zero rule prevents "00000…" buildup.
         var current = ""
         repeat(7) { current = InputNormalizer.onDigit(current, '0') }
         assertEquals("0", current)
     }
 
     @Test
-    fun onDigit_overflowingIntegerCap_clampsToMaxValue() {
-        // 7th integer digit attempts clamp the value to the cap so the user
-        // gets visible feedback that they hit the limit, rather than a silent
-        // no-op. MAX_VALUE = "999999.99" (under 1,000,000).
-        assertEquals(InputNormalizer.MAX_VALUE, InputNormalizer.onDigit("999999", '1'))
-        assertEquals(InputNormalizer.MAX_VALUE, InputNormalizer.onDigit("111111", '7'))
+    fun onDigit_atStructuralLimit_isANoOp() {
+        // Structural ceiling = 15 integer digits. Past it, additional digits
+        // are dropped silently — the economic cap (USDC notional) is enforced
+        // at the ViewModel layer.
+        val fifteenNines = "999999999999999"
+        assertEquals(fifteenNines, InputNormalizer.onDigit(fifteenNines, '1'))
     }
 
     @Test
-    fun onDigit_allowsSixthIntegerDigit() {
-        assertEquals("999999", InputNormalizer.onDigit("99999", '9'))
+    fun onDigit_allowsFifteenthIntegerDigit() {
+        assertEquals("999999999999999", InputNormalizer.onDigit("99999999999999", '9'))
     }
 
     @Test

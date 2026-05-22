@@ -1,5 +1,6 @@
 package com.example.exchangeratecalculator.presentation.calculator
 
+import com.example.exchangeratecalculator.core.coroutine.StaleRecheckTicker
 import com.example.exchangeratecalculator.data.remote.FallbackCurrenciesProvider
 import com.example.exchangeratecalculator.domain.model.AppSettings
 import com.example.exchangeratecalculator.domain.model.Currency
@@ -15,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -82,6 +84,41 @@ class CalculatorViewModelTest {
         }
 
     @Test
+    fun typingPastUsdcNotionalCap_clampsActiveUsdc() =
+        runTest {
+            // Active USDC field — keep tapping digits past the cap.
+            val viewModel = createViewModel(initialRate = freshTicker(bid = "18.40", ask = "18.41"))
+
+            // 10 nines (10,000,000,000) — over the 999,999,999.99 cap.
+            repeat(10) { viewModel.onDigitPressed('9') }
+
+            val state = viewModel.uiState.value
+            assertEquals("999999999.99", state.topAmountText)
+        }
+
+    @Test
+    fun typingPastUsdcNotionalCap_clampsActiveFiatViaUsdcEquivalent() =
+        runTest {
+            // Active fiat field (post-swap). MXN ask = 18.41.
+            // Fiat input is clamped such that USDC equivalent ≤ 999,999,999.99.
+            val settings = FakeSettingsRepository(AppSettings(selectedFiatCode = "MXN", isSwapped = true))
+            val viewModel =
+                createViewModel(
+                    settings = settings,
+                    initialRate = freshTicker(bid = "18.40", ask = "18.41"),
+                )
+
+            // Type "9999999999999" (13 nines) — far above the cap-equivalent
+            // MXN of 999_999_999.99 × 18.41 = 18,409,999,999.61.
+            repeat(13) { viewModel.onDigitPressed('9') }
+
+            val state = viewModel.uiState.value
+            // Cap-equivalent MXN: 999999999.99 * 18.41 = 18409999999.8159
+            // setScale(2, DOWN) → 18409999999.81
+            assertEquals("18409999999.81", state.topAmountText)
+        }
+
+    @Test
     fun onDigitPressed_withFreshRate_writesConversionToInactive() =
         runTest {
             val viewModel = createViewModel(initialRate = freshTicker(bid = "18.40", ask = "18.41"))
@@ -109,20 +146,25 @@ class CalculatorViewModelTest {
         }
 
     @Test
-    fun onSwapPressed_flipsCurrenciesAndAmountsAndPersists() =
+    fun onSwapPressed_flipsCurrencies_andRecomputesBottomUsingCorrectRateDirection() =
         runTest {
             val settingsRepo = FakeSettingsRepository(AppSettings(selectedFiatCode = "MXN", isSwapped = false))
             val viewModel = createViewModel(settings = settingsRepo)
-            viewModel.onDigitPressed('5')
+            // top=USDC "1", bottom=MXN "18.40" (USDC→MXN uses bid=18.40)
+            viewModel.onDigitPressed('1')
             val before = viewModel.uiState.value
+            assertEquals("18.40", before.bottomAmountText)
 
             viewModel.onSwapPressed()
 
             val after = viewModel.uiState.value
             assertEquals(before.bottomCurrencyCode, after.topCurrencyCode)
             assertEquals(before.topCurrencyCode, after.bottomCurrencyCode)
+            // Top inherits the old bottom value verbatim.
             assertEquals(before.bottomAmountText, after.topAmountText)
-            assertEquals(before.topAmountText, after.bottomAmountText)
+            // Bottom is recomputed from the new top using ask=18.41 (buying USDC):
+            // 18.40 / 18.41 = 0.99945... → HALF_UP at 2 dp → 1.00 USDC.
+            assertEquals("1.00", after.bottomAmountText)
             assertTrue(after.isSwapped)
             assertTrue(settingsRepo.lastIsSwapped == true)
         }
@@ -157,22 +199,16 @@ class CalculatorViewModelTest {
         }
 
     @Test
-    fun staleRateResource_mapsToAvailableNotFresh() =
+    fun expiredTicker_mapsToAvailableNotFresh() =
         runTest {
+            // A ticker fetched long ago (fetchedAtEpochMs = 0) is past the
+            // stale threshold, so the VM marks it isFresh = false even though
+            // the repo just emits Available.
             val rateRepo = FakeRateRepository()
-            rateRepo.emit("MXN", RateResource.Stale(ticker(book = "usdc_mxn")))
-            val viewModel = createViewModel(rateRepository = rateRepo)
-
-            val display = viewModel.uiState.value.rateDisplayState
-            assertTrue("expected Available but got $display", display is RateDisplayState.Available)
-            assertFalse((display as RateDisplayState.Available).isFresh)
-        }
-
-    @Test
-    fun degradedRateResource_mapsToAvailableNotFresh() =
-        runTest {
-            val rateRepo = FakeRateRepository()
-            rateRepo.emit("MXN", RateResource.Degraded(ticker(book = "usdc_mxn")))
+            rateRepo.emit(
+                "MXN",
+                RateResource.Available(ticker(book = "usdc_mxn", fetchedAtEpochMs = 0L)),
+            )
             val viewModel = createViewModel(rateRepository = rateRepo)
 
             val display = viewModel.uiState.value.rateDisplayState
@@ -242,26 +278,33 @@ class CalculatorViewModelTest {
             getAvailableCurrencies = GetAvailableCurrenciesUseCase(currencyRepository),
             settingsRepository = settings,
             convertCurrency = ConvertCurrencyUseCase(),
+            staleRecheckTicker = SingleTickStaleRecheckTicker,
         )
+    }
+
+    // Single-emission ticker so combine() fires once with the latest rate and
+    // then completes — keeps runTest from waiting on a forever-ticking flow.
+    private object SingleTickStaleRecheckTicker : StaleRecheckTicker {
+        override fun ticks(): Flow<Unit> = flowOf(Unit)
     }
 
     private fun ticker(
         book: String = "usdc_mxn",
         ask: String = "18.41",
         bid: String = "18.40",
+        fetchedAtEpochMs: Long = System.currentTimeMillis(),
     ) = RateTicker(
         book = book,
         ask = BigDecimal(ask),
         bid = BigDecimal(bid),
-        fetchedAtEpochMs = 0L,
-        expiresAtEpochMs = Long.MAX_VALUE,
+        fetchedAtEpochMs = fetchedAtEpochMs,
     )
 
     private fun freshTicker(
         book: String = "usdc_mxn",
         ask: String = "18.41",
         bid: String = "18.40",
-    ): RateResource = RateResource.Fresh(ticker(book, ask, bid))
+    ): RateResource = RateResource.Available(ticker(book, ask, bid))
 
     private class FakeSettingsRepository(initial: AppSettings) : SettingsRepository {
         private val state = MutableStateFlow(initial)

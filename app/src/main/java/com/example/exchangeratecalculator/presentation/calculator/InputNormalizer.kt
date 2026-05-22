@@ -2,11 +2,12 @@ package com.example.exchangeratecalculator.presentation.calculator
 
 object InputNormalizer {
     private const val MAX_DECIMAL_PLACES = 2
-    private const val MAX_INTEGER_DIGITS = 6
-    private const val DECIMAL_SEPARATOR = '.'
 
-    // Clamp value when the user tries to type past MAX_INTEGER_DIGITS.
-    const val MAX_VALUE = "999999.99"
+    // Structural ceiling — high enough to comfortably hold any realistic fiat
+    // representation of the USDC notional cap (e.g. 1.5B ARS at $1M USDC).
+    // The economic cap lives in the ViewModel as a USDC-equivalent check.
+    private const val MAX_INTEGER_DIGITS = 15
+    private const val DECIMAL_SEPARATOR = '.'
 
     fun onDigit(
         current: String,
@@ -18,7 +19,7 @@ object InputNormalizer {
 
         val dotIndex = current.indexOf(DECIMAL_SEPARATOR)
         if (dotIndex == -1) {
-            if (current.length >= MAX_INTEGER_DIGITS) return MAX_VALUE
+            if (current.length >= MAX_INTEGER_DIGITS) return current
         } else {
             val decimalDigits = current.length - dotIndex - 1
             if (decimalDigits >= MAX_DECIMAL_PLACES) return current

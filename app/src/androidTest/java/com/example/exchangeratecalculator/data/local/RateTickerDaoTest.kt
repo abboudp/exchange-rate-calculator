@@ -66,12 +66,10 @@ class RateTickerDaoTest {
         ask: String = "18.4105",
         bid: String = "18.4069",
         fetchedAtEpochMs: Long = 1_000L,
-        expiresAtEpochMs: Long = 301_000L,
     ) = RateTickerEntity(
         book = book,
         ask = ask,
         bid = bid,
         fetchedAtEpochMs = fetchedAtEpochMs,
-        expiresAtEpochMs = expiresAtEpochMs,
     )
 }

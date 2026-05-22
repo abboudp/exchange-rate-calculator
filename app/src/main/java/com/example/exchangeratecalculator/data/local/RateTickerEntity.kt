@@ -11,7 +11,6 @@ data class RateTickerEntity(
     val ask: String,
     val bid: String,
     val fetchedAtEpochMs: Long,
-    val expiresAtEpochMs: Long,
 )
 
 fun RateTickerEntity.toDomain(): RateTicker =
@@ -20,5 +19,4 @@ fun RateTickerEntity.toDomain(): RateTicker =
         ask = BigDecimal(ask),
         bid = BigDecimal(bid),
         fetchedAtEpochMs = fetchedAtEpochMs,
-        expiresAtEpochMs = expiresAtEpochMs,
     )

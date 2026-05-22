@@ -17,7 +17,6 @@ class ConvertCurrencyUseCaseTest {
         ask = BigDecimal(ask),
         bid = BigDecimal(bid),
         fetchedAtEpochMs = 0L,
-        expiresAtEpochMs = Long.MAX_VALUE,
     )
 
     @Test

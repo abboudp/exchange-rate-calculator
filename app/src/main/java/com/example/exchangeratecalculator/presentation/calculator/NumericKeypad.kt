@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -33,13 +36,17 @@ fun NumericKeypad(
     canBackspace: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    // Background is applied BEFORE navigationBarsPadding so the grey extends
+    // edge-to-edge under the system gesture bar; the keys themselves still
+    // sit above it via the inset padding that follows.
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .background(KeyboardBackground)
-                .padding(top = 6.dp, bottom = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+                .navigationBarsPadding()
+                .padding(top = 12.dp, bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         KeypadRow {
             DigitKey('1', null, onDigit)
@@ -65,16 +72,16 @@ fun NumericKeypad(
 }
 
 @Composable
-private fun KeypadRow(content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit) {
+private fun KeypadRow(content: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(46.dp).padding(horizontal = 6.dp),
+        modifier = Modifier.fillMaxWidth().height(KEY_HEIGHT).padding(horizontal = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         content = content,
     )
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.DigitKey(
+private fun RowScope.DigitKey(
     digit: Char,
     subLabel: String?,
     onDigit: (Char) -> Unit,
@@ -103,7 +110,7 @@ private fun androidx.compose.foundation.layout.RowScope.DigitKey(
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.DecimalKey(
+private fun RowScope.DecimalKey(
     enabled: Boolean,
     onDecimal: () -> Unit,
 ) {
@@ -124,7 +131,7 @@ private fun androidx.compose.foundation.layout.RowScope.DecimalKey(
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.BackspaceKey(
+private fun RowScope.BackspaceKey(
     enabled: Boolean,
     onBackspace: () -> Unit,
 ) {
@@ -150,7 +157,7 @@ private fun KeyButton(
     testTag: String,
     modifier: Modifier = Modifier,
     hasSurface: Boolean,
-    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
         modifier = modifier.testTag(testTag),
@@ -162,7 +169,7 @@ private fun KeyButton(
         enabled = enabled,
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().height(46.dp).padding(4.dp),
+            modifier = Modifier.fillMaxWidth().height(KEY_HEIGHT).padding(4.dp),
             contentAlignment = Alignment.Center,
         ) {
             Column(
@@ -173,5 +180,6 @@ private fun KeyButton(
     }
 }
 
+private val KEY_HEIGHT = 64.dp
 private val KeyboardBackground = Color(0xFFD1D3D8)
 private val KeyBackground = Color(0xFFFCFCFE)
