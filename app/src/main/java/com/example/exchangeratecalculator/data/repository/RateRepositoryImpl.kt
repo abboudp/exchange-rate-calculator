@@ -31,9 +31,8 @@ class RateRepositoryImpl
         private val api: DolarApi,
         private val dao: RateTickerDao,
         private val dispatchers: DispatcherProvider,
-        @ApplicationScope private val appScope: CoroutineScope,
+        @param:ApplicationScope private val appScope: CoroutineScope,
     ) : RateRepository {
-
         init {
             appScope.launch(dispatchers.io) {
                 try {
@@ -53,8 +52,11 @@ class RateRepositoryImpl
 
                 val initialEntity = dao.observeTicker(book).first()
                 send(
-                    if (initialEntity != null) RateResource.Available(initialEntity.toDomain())
-                    else RateResource.Loading,
+                    if (initialEntity != null) {
+                        RateResource.Available(initialEntity.toDomain())
+                    } else {
+                        RateResource.Loading
+                    },
                 )
 
                 launch {
