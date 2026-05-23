@@ -1,5 +1,8 @@
 package com.example.exchangeratecalculator.presentation.calculator
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -24,12 +28,16 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,6 +46,7 @@ import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
 import com.example.exchangeratecalculator.presentation.theme.BrandGreen
 import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 import com.example.exchangeratecalculator.presentation.theme.ScreenBackground
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 const val RATE_DISPLAY_TAG = "rate_display"
@@ -187,6 +196,23 @@ private fun AmountRowsWithSwap(
     onSwap: () -> Unit,
     onFiatRowTapped: () -> Unit,
 ) {
+    val density = LocalDensity.current
+    val rowAndGapPx = remember(density) { with(density) { (66.dp + 16.dp).toPx() } }
+
+    val topOffset = remember { Animatable(0f) }
+    val bottomOffset = remember { Animatable(0f) }
+    val animScope = rememberCoroutineScope()
+
+    LaunchedEffect(uiState.swapAnimationKey) {
+        if (uiState.swapAnimationKey == 0) return@LaunchedEffect
+        val fromDirection = if (uiState.isSwapped) 1f else -1f
+        topOffset.snapTo(rowAndGapPx * fromDirection)
+        bottomOffset.snapTo(-rowAndGapPx * fromDirection)
+        val animSpec = tween<Float>(durationMillis = 230, easing = FastOutSlowInEasing)
+        animScope.launch { topOffset.animateTo(0f, animSpec) }
+        animScope.launch { bottomOffset.animateTo(0f, animSpec) }
+    }
+
     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Column {
             CurrencyAmountRow(
@@ -199,6 +225,7 @@ private fun AmountRowsWithSwap(
                     ),
                 isActive = uiState.activeField == AmountField.TOP,
                 onCurrencyClick = onFiatRowTapped,
+                modifier = Modifier.offset { IntOffset(0, topOffset.value.roundToInt()) },
                 testTag = CURRENCY_ROW_TOP_TAG,
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -212,6 +239,7 @@ private fun AmountRowsWithSwap(
                     ),
                 isActive = false,
                 onCurrencyClick = onFiatRowTapped,
+                modifier = Modifier.offset { IntOffset(0, bottomOffset.value.roundToInt()) },
                 testTag = CURRENCY_ROW_BOTTOM_TAG,
             )
         }
