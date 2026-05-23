@@ -183,7 +183,7 @@ private fun CurrencyPickerFlag(code: String) {
                 .background(color = Color(0xFFF4F4F4), shape = CircleShape),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = flagFor(code), style = MaterialTheme.typography.titleMedium)
+        CurrencyFlag(code = code, modifier = Modifier.size(28.dp))
     }
 }
 
@@ -212,17 +212,6 @@ private fun SelectionIndicator(isSelected: Boolean) {
         }
     }
 }
-
-private fun flagFor(code: String): String =
-    when (code) {
-        "USDC" -> "🇺🇸"
-        "MXN" -> "🇲🇽"
-        "COP" -> "🇨🇴"
-        "ARS" -> "🇦🇷"
-        "BRL" -> "🇧🇷"
-        "EURC" -> "🇪🇺"
-        else -> code.take(1)
-    }
 
 const val PICKER_SHEET_TAG = "picker_sheet"
 const val PICKER_CLOSE_TAG = "picker_close"
