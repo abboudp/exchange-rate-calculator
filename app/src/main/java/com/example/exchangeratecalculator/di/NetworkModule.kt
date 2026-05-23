@@ -61,5 +61,5 @@ object NetworkModule {
     @Singleton
     fun provideDolarApi(retrofit: Retrofit): DolarApi = retrofit.create(DolarApi::class.java)
 
-    private const val NETWORK_TIMEOUT_SECONDS = 30L
+    private const val NETWORK_TIMEOUT_SECONDS = 10L
 }
