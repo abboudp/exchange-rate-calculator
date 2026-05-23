@@ -9,5 +9,3 @@ enum class SupportedCurrency(val code: String, @DrawableRes val flagRes: Int) {
     BRL("BRL", R.drawable.flag_brl),
     COP("COP", R.drawable.flag_cop),
 }
-
-val DEFAULT_FIAT_CODE: String = SupportedCurrency.entries.first().code
