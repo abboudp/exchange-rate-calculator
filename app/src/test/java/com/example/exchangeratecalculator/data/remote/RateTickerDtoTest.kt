@@ -2,7 +2,10 @@ package com.example.exchangeratecalculator.data.remote
 
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Test
+import java.math.BigDecimal
 
 class RateTickerDtoTest {
     private val json = Json { ignoreUnknownKeys = true }
@@ -30,5 +33,45 @@ class RateTickerDtoTest {
     @Test
     fun fallbackCurrencies_queryCodes_joinsWithComma() {
         assertEquals("MXN,ARS,BRL,COP", FallbackCurrenciesProvider.queryCodes)
+    }
+
+    private fun dto(ask: String = "18.41", bid: String = "18.40") =
+        RateTickerDto(ask = ask, bid = bid, book = "usdc_mxn", date = "2026-05-23")
+
+    @Test
+    fun `toEntity returns entity for valid positive decimals`() {
+        val entity = dto(ask = "18.41", bid = "18.40").toEntity(fetchedAtEpochMs = 1000L)
+        assertNotNull(entity)
+    }
+
+    @Test
+    fun `toEntity returns null when ask is not a decimal`() {
+        val entity = dto(ask = "N/A", bid = "18.40").toEntity(fetchedAtEpochMs = 1000L)
+        assertNull(entity)
+    }
+
+    @Test
+    fun `toEntity returns null when bid is empty`() {
+        val entity = dto(ask = "18.41", bid = "").toEntity(fetchedAtEpochMs = 1000L)
+        assertNull(entity)
+    }
+
+    @Test
+    fun `toEntity returns null when ask is zero`() {
+        val entity = dto(ask = "0", bid = "18.40").toEntity(fetchedAtEpochMs = 1000L)
+        assertNull(entity)
+    }
+
+    @Test
+    fun `toEntity returns null when bid is negative`() {
+        val entity = dto(ask = "18.41", bid = "-1.00").toEntity(fetchedAtEpochMs = 1000L)
+        assertNull(entity)
+    }
+
+    @Test
+    fun `toEntity stores ask and bid as canonical plain string`() {
+        val entity = dto(ask = "18.410", bid = "18.400").toEntity(fetchedAtEpochMs = 1000L)!!
+        assertNotNull(entity.ask.toBigDecimalOrNull())
+        assertNotNull(entity.bid.toBigDecimalOrNull())
     }
 }

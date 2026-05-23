@@ -87,7 +87,7 @@ class RateRepositoryImpl
         private suspend fun fetchAllTickers() {
             val dtos = api.getTickers(FallbackCurrenciesProvider.queryCodes)
             val now = System.currentTimeMillis()
-            dtos.forEach { dto -> dao.upsertTicker(dto.toEntity(fetchedAtEpochMs = now)) }
+            dtos.forEach { dto -> dto.toEntity(fetchedAtEpochMs = now)?.let { dao.upsertTicker(it) } }
         }
 
         companion object {

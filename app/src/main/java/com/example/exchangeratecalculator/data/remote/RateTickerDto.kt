@@ -2,6 +2,7 @@ package com.example.exchangeratecalculator.data.remote
 
 import com.example.exchangeratecalculator.data.local.RateTickerEntity
 import kotlinx.serialization.Serializable
+import java.math.BigDecimal
 
 @Serializable
 data class RateTickerDto(
@@ -11,10 +12,13 @@ data class RateTickerDto(
     val date: String,
 )
 
-fun RateTickerDto.toEntity(fetchedAtEpochMs: Long): RateTickerEntity =
-    RateTickerEntity(
+fun RateTickerDto.toEntity(fetchedAtEpochMs: Long): RateTickerEntity? {
+    val askDecimal = ask.toBigDecimalOrNull()?.takeIf { it > BigDecimal.ZERO } ?: return null
+    val bidDecimal = bid.toBigDecimalOrNull()?.takeIf { it > BigDecimal.ZERO } ?: return null
+    return RateTickerEntity(
         book = book,
-        ask = ask,
-        bid = bid,
+        ask = askDecimal.toPlainString(),
+        bid = bidDecimal.toPlainString(),
         fetchedAtEpochMs = fetchedAtEpochMs,
     )
+}
