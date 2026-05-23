@@ -34,8 +34,10 @@ class RateTickerDtoTest {
         assertEquals("MXN,ARS,BRL,COP", FallbackCurrenciesProvider.queryCodes)
     }
 
-    private fun dto(ask: String = "18.41", bid: String = "18.40") =
-        RateTickerDto(ask = ask, bid = bid, book = "usdc_mxn", date = "2026-05-23")
+    private fun dto(
+        ask: String = "18.41",
+        bid: String = "18.40",
+    ) = RateTickerDto(ask = ask, bid = bid, book = "usdc_mxn", date = "2026-05-23")
 
     @Test
     fun `toEntity returns entity for valid positive decimals`() {

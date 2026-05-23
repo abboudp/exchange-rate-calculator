@@ -226,7 +226,6 @@ class CalculatorViewModelTest {
             assertEquals(RateDisplayState.Unavailable, viewModel.uiState.value.rateDisplayState)
         }
 
-
     @Test
     fun clearingActiveField_clearsInactiveField() =
         runTest {

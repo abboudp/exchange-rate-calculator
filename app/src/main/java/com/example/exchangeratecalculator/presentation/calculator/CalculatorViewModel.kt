@@ -112,7 +112,6 @@ class CalculatorViewModel
             // currency's rate arrives via observeRateForCurrency.
         }
 
-
         private fun transformActiveText(transform: (String) -> String) {
             val ticker = currentTicker()
             _uiState.update { state ->

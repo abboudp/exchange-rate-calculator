@@ -48,9 +48,9 @@ import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
 import com.example.exchangeratecalculator.presentation.theme.BrandGreen
 import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 import com.example.exchangeratecalculator.presentation.theme.ScreenBackground
-import kotlin.math.roundToInt
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 const val RATE_DISPLAY_TAG = "rate_display"
 private val StaleRateGray = PrimaryText.copy(alpha = 0.5f)

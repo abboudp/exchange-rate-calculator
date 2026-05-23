@@ -54,16 +54,18 @@ fun CurrencyAmountRow(
         enabled = isSelectable,
         modifier = modifier.fillMaxWidth().height(66.dp).testTag(testTag),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = CardBackground,
-            disabledContainerColor = CardBackground,
-            contentColor = PrimaryText,
-            disabledContentColor = PrimaryText,
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 0.dp,
-            pressedElevation = if (isSelectable) 4.dp else 0.dp,
-        ),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = CardBackground,
+                disabledContainerColor = CardBackground,
+                contentColor = PrimaryText,
+                disabledContentColor = PrimaryText,
+            ),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 0.dp,
+                pressedElevation = if (isSelectable) 4.dp else 0.dp,
+            ),
     ) {
         CardContent(
             displayCode = displayCode,

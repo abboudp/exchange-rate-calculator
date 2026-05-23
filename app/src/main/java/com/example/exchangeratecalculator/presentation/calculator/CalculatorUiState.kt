@@ -1,7 +1,7 @@
 package com.example.exchangeratecalculator.presentation.calculator
 
-import com.example.exchangeratecalculator.domain.model.DEFAULT_FIAT_CODE
 import com.example.exchangeratecalculator.domain.model.Currency
+import com.example.exchangeratecalculator.domain.model.DEFAULT_FIAT_CODE
 import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
 
 enum class AmountField { TOP, BOTTOM }
