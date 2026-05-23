@@ -205,9 +205,8 @@ private fun AmountRowsWithSwap(
 
     LaunchedEffect(uiState.swapAnimationKey) {
         if (uiState.swapAnimationKey == 0) return@LaunchedEffect
-        val fromDirection = if (uiState.isSwapped) 1f else -1f
-        topOffset.snapTo(rowAndGapPx * fromDirection)
-        bottomOffset.snapTo(-rowAndGapPx * fromDirection)
+        topOffset.snapTo(rowAndGapPx)
+        bottomOffset.snapTo(-rowAndGapPx)
         val animSpec = tween<Float>(durationMillis = 230, easing = FastOutSlowInEasing)
         animScope.launch { topOffset.animateTo(0f, animSpec) }
         animScope.launch { bottomOffset.animateTo(0f, animSpec) }
