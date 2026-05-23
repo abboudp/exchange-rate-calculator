@@ -1,5 +1,8 @@
 package com.example.exchangeratecalculator.presentation.calculator
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -24,12 +28,18 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,7 +48,9 @@ import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
 import com.example.exchangeratecalculator.presentation.theme.BrandGreen
 import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 import com.example.exchangeratecalculator.presentation.theme.ScreenBackground
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 const val RATE_DISPLAY_TAG = "rate_display"
 private val StaleRateGray = PrimaryText.copy(alpha = 0.5f)
@@ -187,6 +199,31 @@ private fun AmountRowsWithSwap(
     onSwap: () -> Unit,
     onFiatRowTapped: () -> Unit,
 ) {
+    val density = LocalDensity.current
+    val rowAndGapPx = remember(density) { with(density) { (66.dp + 16.dp).toPx() } }
+
+    val topOffset = remember { Animatable(0f) }
+    val bottomOffset = remember { Animatable(0f) }
+    var swapEnabled by remember { mutableStateOf(true) }
+    var lastAnimatedKey by remember { mutableStateOf(uiState.swapAnimationKey) }
+
+    LaunchedEffect(uiState.swapAnimationKey) {
+        if (uiState.swapAnimationKey == lastAnimatedKey) return@LaunchedEffect
+        lastAnimatedKey = uiState.swapAnimationKey
+        swapEnabled = false
+        try {
+            topOffset.snapTo(rowAndGapPx)
+            bottomOffset.snapTo(-rowAndGapPx)
+            val animSpec = tween<Float>(durationMillis = 230, easing = FastOutSlowInEasing)
+            coroutineScope {
+                launch { topOffset.animateTo(0f, animSpec) }
+                launch { bottomOffset.animateTo(0f, animSpec) }
+            }
+        } finally {
+            swapEnabled = true
+        }
+    }
+
     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         Column {
             CurrencyAmountRow(
@@ -199,6 +236,7 @@ private fun AmountRowsWithSwap(
                     ),
                 isActive = uiState.activeField == AmountField.TOP,
                 onCurrencyClick = onFiatRowTapped,
+                modifier = Modifier.offset { IntOffset(0, topOffset.value.roundToInt()) },
                 testTag = CURRENCY_ROW_TOP_TAG,
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -212,11 +250,12 @@ private fun AmountRowsWithSwap(
                     ),
                 isActive = false,
                 onCurrencyClick = onFiatRowTapped,
+                modifier = Modifier.offset { IntOffset(0, bottomOffset.value.roundToInt()) },
                 testTag = CURRENCY_ROW_BOTTOM_TAG,
             )
         }
         SwapButton(
-            onClick = onSwap,
+            onClick = { if (swapEnabled) onSwap() },
             modifier = Modifier.align(Alignment.Center),
         )
     }

@@ -227,31 +227,6 @@ class CalculatorViewModelTest {
         }
 
     @Test
-    fun focusChange_doesNotCorruptValueWithGroupingCommas() =
-        runTest {
-            // Regression: previously the inactive field was stored as a
-            // comma-formatted string. Once focus moved to it, the now-active
-            // text was unparseable and conversion silently fell back to zero.
-            val rateRepo = FakeRateRepository()
-            rateRepo.emit(
-                "MXN",
-                freshTicker(book = "usdc_mxn", bid = "1500.00", ask = "1510.00"),
-            )
-            val viewModel = createViewModel(rateRepository = rateRepo)
-            viewModel.onDigitPressed('1')
-            assertEquals("1500.00", viewModel.uiState.value.bottomAmountText)
-
-            viewModel.onBottomFieldFocused()
-
-            // Bottom is now active with raw "1500.00". Recomputed top should
-            // be 1500 / 1510 ask ≈ 0.99 USDC, never 0.
-            val state = viewModel.uiState.value
-            assertEquals("1500.00", state.bottomAmountText)
-            assertEquals(AmountField.BOTTOM, state.activeField)
-            assertEquals("0.99", state.topAmountText)
-        }
-
-    @Test
     fun clearingActiveField_clearsInactiveField() =
         runTest {
             val viewModel = createViewModel()

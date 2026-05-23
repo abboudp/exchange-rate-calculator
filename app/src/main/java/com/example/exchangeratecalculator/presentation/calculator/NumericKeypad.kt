@@ -25,6 +25,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.exchangeratecalculator.presentation.theme.KeyBackground
+import com.example.exchangeratecalculator.presentation.theme.KeyboardBackground
 import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 
 @Composable
@@ -181,5 +183,3 @@ private fun KeyButton(
 }
 
 private val KEY_HEIGHT = 64.dp
-private val KeyboardBackground = Color(0xFFD1D3D8)
-private val KeyBackground = Color(0xFFFCFCFE)

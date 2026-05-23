@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.exchangeratecalculator.presentation.theme.CardBackground
+import com.example.exchangeratecalculator.presentation.theme.CursorBlue
 import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 
 @Composable
@@ -49,10 +49,24 @@ fun CurrencyAmountRow(
     testTag: String,
 ) {
     val displayCode = if (currencyCode == "USDC") "USDc" else currencyCode
-    val cardModifier = modifier.fillMaxWidth().height(66.dp).testTag(testTag)
-    val cardShape = RoundedCornerShape(16.dp)
-    val cardColors = CardDefaults.cardColors(containerColor = CardBackground)
-    val cardContent: @Composable () -> Unit = {
+    Card(
+        onClick = onCurrencyClick,
+        enabled = isSelectable,
+        modifier = modifier.fillMaxWidth().height(66.dp).testTag(testTag),
+        shape = RoundedCornerShape(16.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = CardBackground,
+                disabledContainerColor = CardBackground,
+                contentColor = PrimaryText,
+                disabledContentColor = PrimaryText,
+            ),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 0.dp,
+                pressedElevation = if (isSelectable) 4.dp else 0.dp,
+            ),
+    ) {
         CardContent(
             displayCode = displayCode,
             currencyCode = currencyCode,
@@ -60,31 +74,6 @@ fun CurrencyAmountRow(
             amountDisplay = amountDisplay,
             isActive = isActive,
         )
-    }
-
-    if (isSelectable) {
-        Card(
-            onClick = onCurrencyClick,
-            modifier = cardModifier,
-            shape = cardShape,
-            colors = cardColors,
-            elevation =
-                CardDefaults.cardElevation(
-                    defaultElevation = 0.dp,
-                    pressedElevation = 4.dp,
-                ),
-        ) {
-            cardContent()
-        }
-    } else {
-        Card(
-            modifier = cardModifier,
-            shape = cardShape,
-            colors = cardColors,
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        ) {
-            cardContent()
-        }
     }
 }
 
@@ -184,7 +173,7 @@ private fun BlinkingCursor() {
                 .width(2.dp)
                 .height(20.dp)
                 .alpha(alpha)
-                .background(Color(0xFF2F7CFF), shape = RoundedCornerShape(1.dp)),
+                .background(CursorBlue, shape = RoundedCornerShape(1.dp)),
     )
 }
 

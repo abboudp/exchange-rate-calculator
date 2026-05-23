@@ -77,16 +77,13 @@ class CalculatorViewModel
             val newIsSwapped = !_uiState.value.isSwapped
             val ticker = currentTicker()
             _uiState.update { state ->
-                // Bid != ask, so after a flip the bottom needs to be
-                // recomputed from the new active (top) using the correct
-                // direction's rate. Without this, the bottom shows the
-                // pre-swap value until the next rate emission.
                 state.copy(
                     topCurrencyCode = state.bottomCurrencyCode,
                     bottomCurrencyCode = state.topCurrencyCode,
                     topAmountText = state.bottomAmountText,
                     bottomAmountText = state.topAmountText,
                     isSwapped = newIsSwapped,
+                    swapAnimationKey = state.swapAnimationKey + 1,
                 ).withRecomputedInactive(ticker)
                     .withRecomputedRateDisplay()
                     .withKeypadFlags()
@@ -113,21 +110,6 @@ class CalculatorViewModel
             }
             // The active value is re-evaluated against the cap when the new
             // currency's rate arrives via observeRateForCurrency.
-        }
-
-        fun onTopFieldFocused() = focusField(AmountField.TOP)
-
-        fun onBottomFieldFocused() = focusField(AmountField.BOTTOM)
-
-        private fun focusField(field: AmountField) {
-            if (_uiState.value.activeField == field) return
-            val ticker = currentTicker()
-            _uiState.update { state ->
-                state.copy(activeField = field)
-                    .withRecomputedInactive(ticker)
-                    .withRecomputedRateDisplay()
-                    .withKeypadFlags()
-            }
         }
 
         private fun transformActiveText(transform: (String) -> String) {

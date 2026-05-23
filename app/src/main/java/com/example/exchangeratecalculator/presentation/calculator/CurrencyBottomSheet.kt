@@ -44,8 +44,11 @@ import com.example.exchangeratecalculator.R
 import com.example.exchangeratecalculator.domain.model.Currency
 import com.example.exchangeratecalculator.presentation.theme.BrandGreen
 import com.example.exchangeratecalculator.presentation.theme.CardBackground
+import com.example.exchangeratecalculator.presentation.theme.HandleGray
+import com.example.exchangeratecalculator.presentation.theme.PickerFlagBackground
 import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 import com.example.exchangeratecalculator.presentation.theme.ScreenBackground
+import com.example.exchangeratecalculator.presentation.theme.SelectionBorderGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +120,7 @@ private fun BottomSheetHandle() {
                     .width(36.dp)
                     .height(4.dp)
                     .clip(RoundedCornerShape(100.dp))
-                    .background(Color(0xFFD9D9D9)),
+                    .background(HandleGray),
         )
     }
 }
@@ -180,7 +183,7 @@ private fun CurrencyPickerFlag(code: String) {
         modifier =
             Modifier
                 .size(40.dp)
-                .background(color = Color(0xFFF4F4F4), shape = CircleShape),
+                .background(color = PickerFlagBackground, shape = CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         CurrencyFlag(code = code, modifier = Modifier.size(28.dp))
@@ -197,7 +200,7 @@ private fun SelectionIndicator(isSelected: Boolean) {
                     if (isSelected) {
                         Modifier.background(BrandGreen, CircleShape)
                     } else {
-                        Modifier.border(2.dp, Color(0xFFD1D1D6), CircleShape)
+                        Modifier.border(2.dp, SelectionBorderGray, CircleShape)
                     },
                 ),
         contentAlignment = Alignment.Center,
