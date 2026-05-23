@@ -30,8 +30,10 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -47,6 +49,7 @@ import com.example.exchangeratecalculator.presentation.theme.BrandGreen
 import com.example.exchangeratecalculator.presentation.theme.PrimaryText
 import com.example.exchangeratecalculator.presentation.theme.ScreenBackground
 import kotlin.math.roundToInt
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 const val RATE_DISPLAY_TAG = "rate_display"
@@ -201,15 +204,22 @@ private fun AmountRowsWithSwap(
 
     val topOffset = remember { Animatable(0f) }
     val bottomOffset = remember { Animatable(0f) }
-    val animScope = rememberCoroutineScope()
+    var swapEnabled by remember { mutableStateOf(true) }
 
     LaunchedEffect(uiState.swapAnimationKey) {
         if (uiState.swapAnimationKey == 0) return@LaunchedEffect
-        topOffset.snapTo(rowAndGapPx)
-        bottomOffset.snapTo(-rowAndGapPx)
-        val animSpec = tween<Float>(durationMillis = 230, easing = FastOutSlowInEasing)
-        animScope.launch { topOffset.animateTo(0f, animSpec) }
-        animScope.launch { bottomOffset.animateTo(0f, animSpec) }
+        swapEnabled = false
+        try {
+            topOffset.snapTo(rowAndGapPx)
+            bottomOffset.snapTo(-rowAndGapPx)
+            val animSpec = tween<Float>(durationMillis = 230, easing = FastOutSlowInEasing)
+            coroutineScope {
+                launch { topOffset.animateTo(0f, animSpec) }
+                launch { bottomOffset.animateTo(0f, animSpec) }
+            }
+        } finally {
+            swapEnabled = true
+        }
     }
 
     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
@@ -243,7 +253,7 @@ private fun AmountRowsWithSwap(
             )
         }
         SwapButton(
-            onClick = onSwap,
+            onClick = { if (swapEnabled) onSwap() },
             modifier = Modifier.align(Alignment.Center),
         )
     }
