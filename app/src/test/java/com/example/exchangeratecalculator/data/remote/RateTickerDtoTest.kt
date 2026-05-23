@@ -5,7 +5,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
-import java.math.BigDecimal
 
 class RateTickerDtoTest {
     private val json = Json { ignoreUnknownKeys = true }
@@ -71,7 +70,7 @@ class RateTickerDtoTest {
     @Test
     fun `toEntity stores ask and bid as canonical plain string`() {
         val entity = dto(ask = "18.410", bid = "18.400").toEntity(fetchedAtEpochMs = 1000L)!!
-        assertNotNull(entity.ask.toBigDecimalOrNull())
-        assertNotNull(entity.bid.toBigDecimalOrNull())
+        assertEquals("18.410", entity.ask)
+        assertEquals("18.400", entity.bid)
     }
 }
