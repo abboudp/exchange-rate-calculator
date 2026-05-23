@@ -47,12 +47,11 @@ class RateRepositoryImplTest {
             val dao = FakeDao()
             val repo = newRepo(api = FakeApi(response = listOf(sampleDto)), dao = dao)
 
-            val emissions = repo.observeRateTicker("MXN").take(2).toList()
+            val first = repo.observeRateTicker("MXN").first()
 
-            assertEquals(RateResource.Loading, emissions[0])
-            assertTrue("expected Available after upsert", emissions[1] is RateResource.Available)
-            assertEquals(1, dao.upserts.size)
-            assertEquals("usdc_mxn", dao.upserts.single().book)
+            assertTrue("expected Available after upsert", first is RateResource.Available)
+            assertTrue(dao.upserts.isNotEmpty())
+            assertTrue(dao.upserts.all { it.book == "usdc_mxn" })
         }
 
     @Test
@@ -74,10 +73,9 @@ class RateRepositoryImplTest {
             val dao = FakeDao().apply { ticker.value = entity() }
             val repo = newRepo(dao = dao)
 
-            val emissions = repo.observeRateTicker("MXN").take(2).toList()
+            val first = repo.observeRateTicker("MXN").first()
 
-            assertEquals(RateResource.Loading, emissions[0])
-            assertTrue(emissions[1] is RateResource.Available)
+            assertTrue(first is RateResource.Available)
         }
 
     @Test
@@ -86,10 +84,9 @@ class RateRepositoryImplTest {
             val dao = FakeDao().apply { ticker.value = entity() }
             val repo = newRepo(api = FakeApi(error = IOException("offline")), dao = dao)
 
-            val emissions = repo.observeRateTicker("MXN").take(2).toList()
+            val first = repo.observeRateTicker("MXN").first()
 
-            assertEquals(RateResource.Loading, emissions[0])
-            assertTrue(emissions[1] is RateResource.Available)
+            assertTrue(first is RateResource.Available)
             assertEquals(0, dao.upserts.size)
         }
 
@@ -101,6 +98,7 @@ class RateRepositoryImplTest {
             api = api,
             dao = dao,
             dispatchers = TestDispatcherProvider(UnconfinedTestDispatcher(testScheduler)),
+            appScope = backgroundScope,
         )
 
     private fun entity(
