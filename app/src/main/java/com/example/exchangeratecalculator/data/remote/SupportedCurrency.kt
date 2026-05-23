@@ -1,11 +1,8 @@
 package com.example.exchangeratecalculator.data.remote
 
-import androidx.annotation.DrawableRes
-import com.example.exchangeratecalculator.R
-
-enum class SupportedCurrency(val code: String, @DrawableRes val flagRes: Int) {
-    MXN("MXN", R.drawable.flag_mxn),
-    ARS("ARS", R.drawable.flag_ars),
-    BRL("BRL", R.drawable.flag_brl),
-    COP("COP", R.drawable.flag_cop),
+enum class SupportedCurrency(val code: String) {
+    MXN("MXN"),
+    ARS("ARS"),
+    BRL("BRL"),
+    COP("COP"),
 }

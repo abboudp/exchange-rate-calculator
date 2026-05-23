@@ -205,9 +205,11 @@ private fun AmountRowsWithSwap(
     val topOffset = remember { Animatable(0f) }
     val bottomOffset = remember { Animatable(0f) }
     var swapEnabled by remember { mutableStateOf(true) }
+    var lastAnimatedKey by remember { mutableStateOf(uiState.swapAnimationKey) }
 
     LaunchedEffect(uiState.swapAnimationKey) {
-        if (uiState.swapAnimationKey == 0) return@LaunchedEffect
+        if (uiState.swapAnimationKey == lastAnimatedKey) return@LaunchedEffect
+        lastAnimatedKey = uiState.swapAnimationKey
         swapEnabled = false
         try {
             topOffset.snapTo(rowAndGapPx)
