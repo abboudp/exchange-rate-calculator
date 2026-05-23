@@ -109,7 +109,7 @@ private fun CardContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            CurrencyFlagIcon(currencyCode)
+            CurrencyFlag(code = currencyCode, modifier = Modifier.size(16.dp))
             Text(
                 text = displayCode,
                 style = MaterialTheme.typography.titleMedium,
@@ -187,31 +187,6 @@ private fun BlinkingCursor() {
                 .background(Color(0xFF2F7CFF), shape = RoundedCornerShape(1.dp)),
     )
 }
-
-@Composable
-private fun CurrencyFlagIcon(code: String) {
-    Box(
-        modifier = Modifier.size(16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = flagFor(code),
-            fontSize = 14.sp,
-            lineHeight = 16.sp,
-        )
-    }
-}
-
-private fun flagFor(code: String): String =
-    when (code) {
-        "USDC" -> "🇺🇸"
-        "MXN" -> "🇲🇽"
-        "COP" -> "🇨🇴"
-        "ARS" -> "🇦🇷"
-        "BRL" -> "🇧🇷"
-        "EURC" -> "🇪🇺"
-        else -> code.take(1)
-    }
 
 const val CURRENCY_ROW_TOP_TAG = "currency_row_top"
 const val CURRENCY_ROW_BOTTOM_TAG = "currency_row_bottom"
