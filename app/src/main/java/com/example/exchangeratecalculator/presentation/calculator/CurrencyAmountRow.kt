@@ -57,6 +57,8 @@ fun CurrencyAmountRow(
         colors = CardDefaults.cardColors(
             containerColor = CardBackground,
             disabledContainerColor = CardBackground,
+            contentColor = PrimaryText,
+            disabledContentColor = PrimaryText,
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = 0.dp,
