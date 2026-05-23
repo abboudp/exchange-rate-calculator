@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.exchangeratecalculator.presentation.theme.BrandGreen
+import com.example.exchangeratecalculator.presentation.theme.SwapButtonGlow
 
 @Composable
 fun SwapButton(
@@ -27,7 +28,7 @@ fun SwapButton(
         Surface(
             onClick = onClick,
             shape = CircleShape,
-            color = Color(0xFFE7FAF1),
+            color = SwapButtonGlow,
             modifier = Modifier.size(36.dp),
         ) {
             Box(contentAlignment = Alignment.Center) {
