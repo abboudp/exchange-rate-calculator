@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.exchangeratecalculator.data.remote.DEFAULT_FIAT_CODE
 import com.example.exchangeratecalculator.domain.model.AppSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -38,6 +39,6 @@ class SettingsDataStore
         companion object {
             private val KEY_SELECTED_FIAT_CODE = stringPreferencesKey("selected_fiat_code")
             private val KEY_IS_SWAPPED = booleanPreferencesKey("is_swapped")
-            private val DEFAULTS = AppSettings()
+            private val DEFAULTS = AppSettings(selectedFiatCode = DEFAULT_FIAT_CODE)
         }
     }

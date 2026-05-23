@@ -9,16 +9,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import com.example.exchangeratecalculator.R
+import com.example.exchangeratecalculator.data.remote.SupportedCurrency
 
 @DrawableRes
 fun currencyFlagRes(code: String): Int? =
     when (code) {
         "USDC" -> R.drawable.flag_usdc
-        "MXN" -> R.drawable.flag_mxn
-        "ARS" -> R.drawable.flag_ars
-        "BRL" -> R.drawable.flag_brl
-        "COP" -> R.drawable.flag_cop
-        else -> null
+        else -> SupportedCurrency.entries.find { it.code == code }?.flagRes
     }
 
 @Composable
