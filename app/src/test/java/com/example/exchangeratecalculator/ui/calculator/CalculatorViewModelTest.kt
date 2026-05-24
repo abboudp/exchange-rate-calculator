@@ -272,9 +272,10 @@ class CalculatorViewModelTest {
             val currencyFlow = MutableStateFlow(FallbackCurrenciesProvider.currencies)
             val viewModel =
                 createViewModel(
-                    currencyRepo = object : CurrencyRepository {
-                        override fun observeAvailableCurrencies(): Flow<List<Currency>> = currencyFlow
-                    },
+                    currencyRepo =
+                        object : CurrencyRepository {
+                            override fun observeAvailableCurrencies(): Flow<List<Currency>> = currencyFlow
+                        },
                 )
             val initial = viewModel.uiState.value.pickerState.currencies
             assertEquals(FallbackCurrenciesProvider.currencies, initial)

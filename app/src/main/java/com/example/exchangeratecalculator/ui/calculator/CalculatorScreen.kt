@@ -155,9 +155,10 @@ private fun RateDisplayText(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    text = stringResource(
-                        if (state.isOffline) R.string.rate_unavailable else R.string.rate_error,
-                    ),
+                    text =
+                        stringResource(
+                            if (state.isOffline) R.string.rate_unavailable else R.string.rate_error,
+                        ),
                     style = MaterialTheme.typography.labelMedium,
                     color = StaleRateGray,
                 )

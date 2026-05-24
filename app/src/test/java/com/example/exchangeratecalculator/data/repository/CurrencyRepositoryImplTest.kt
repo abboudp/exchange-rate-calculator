@@ -5,11 +5,11 @@ import com.example.exchangeratecalculator.data.remote.DolarApi
 import com.example.exchangeratecalculator.data.remote.FallbackCurrenciesProvider
 import com.example.exchangeratecalculator.data.remote.RateTickerDto
 import com.example.exchangeratecalculator.domain.model.Currency
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.Runs
 import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
