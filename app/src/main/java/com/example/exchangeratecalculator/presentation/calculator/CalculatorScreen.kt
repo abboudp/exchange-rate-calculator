@@ -109,7 +109,7 @@ private fun HeaderAndInputs(
             color = PrimaryText,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         RateDisplayText(
             state = uiState.rateDisplayState,
             modifier = Modifier.padding(horizontal = 16.dp),
