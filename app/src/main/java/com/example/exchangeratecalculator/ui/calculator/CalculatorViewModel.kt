@@ -53,8 +53,9 @@ class CalculatorViewModel
 
         init {
             viewModelScope.launch {
-                val currencies = getAvailableCurrencies()
-                _uiState.update { it.copy(pickerState = it.pickerState.copy(currencies = currencies)) }
+                getAvailableCurrencies().collect { currencies ->
+                    _uiState.update { it.copy(pickerState = it.pickerState.copy(currencies = currencies)) }
+                }
             }
             viewModelScope.launch {
                 settingsRepository.observeSettings().collect { settings ->

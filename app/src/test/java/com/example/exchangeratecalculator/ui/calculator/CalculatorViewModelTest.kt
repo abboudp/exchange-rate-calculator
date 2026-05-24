@@ -313,6 +313,6 @@ class CalculatorViewModelTest {
     }
 
     private class FakeCurrencyRepository(private val currencies: List<Currency>) : CurrencyRepository {
-        override suspend fun getAvailableCurrencies(): List<Currency> = currencies
+        override fun observeAvailableCurrencies(): Flow<List<Currency>> = flowOf(currencies)
     }
 }
