@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -36,20 +37,14 @@ class RateRepositoryImpl
     ) : RateRepository {
         init {
             appScope.launch(dispatchers.io) {
-                try {
-                    fetchAllTickers()
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.e(TAG, "Startup fetch failed", e)
-                }
+                fetchAllTickers()
             }
         }
 
         override fun observeRateTicker(fiatCode: String): Flow<RateResource> =
             channelFlow {
                 val book = "usdc_${fiatCode.lowercase()}"
-                val pollFailedFlow = MutableStateFlow(false)
+                val pollFailureFlow = MutableStateFlow<RateResource.UnavailableReason?>(null)
 
                 val initialEntity = dao.observeTicker(book).first()
                 send(
@@ -62,40 +57,60 @@ class RateRepositoryImpl
 
                 launch {
                     while (isActive) {
-                        val succeeded =
-                            try {
-                                fetchAllTickers()
-                                pollFailedFlow.value = false
-                                true
-                            } catch (e: Exception) {
-                                if (e is CancellationException) throw e
-                                Log.e(TAG, "Rate fetch failed", e)
-                                pollFailedFlow.value = true
-                                false
-                            }
-                        delay(if (succeeded) POLL_INTERVAL_MS else RETRY_INTERVAL_MS)
+                        val failures = fetchAllTickers()
+                        val myFailure = failures[fiatCode.uppercase()]
+                        pollFailureFlow.value = myFailure
+                        delay(
+                            if (myFailure == RateResource.UnavailableReason.OFFLINE) {
+                                RETRY_INTERVAL_MS
+                            } else {
+                                POLL_INTERVAL_MS
+                            },
+                        )
                     }
                 }
 
-                combine(dao.observeTicker(book), pollFailedFlow) { entity, failed ->
-                    entity to failed
-                }.collect { (entity, failed) ->
+                combine(dao.observeTicker(book), pollFailureFlow) { entity, failureReason ->
+                    entity to failureReason
+                }.collect { (entity, failureReason) ->
                     when {
                         entity != null -> send(RateResource.Available(entity.toDomain()))
-                        failed -> send(RateResource.Unavailable("offline"))
+                        failureReason != null -> send(RateResource.Unavailable(failureReason))
                     }
                 }
             }.flowOn(dispatchers.io)
 
-        private suspend fun fetchAllTickers() {
-            val queryCodes =
+        private suspend fun fetchAllTickers(): Map<String, RateResource.UnavailableReason> {
+            val currencies =
                 currencyRepository.observeAvailableCurrencies()
                     .first()
                     .filter { !it.isBase }
-                    .joinToString(",") { it.code }
-            val dtos = api.getTickers(queryCodes)
+            val codes = currencies.joinToString(",") { it.code }
             val now = System.currentTimeMillis()
-            dtos.forEach { dto -> dto.toEntity(fetchedAtEpochMs = now)?.let { dao.upsertTicker(it) } }
+
+            return try {
+                val dtos = api.getTickers(codes)
+                dtos.forEach { dto -> dto.toEntity(fetchedAtEpochMs = now)?.let { dao.upsertTicker(it) } }
+                emptyMap()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Batch fetch failed, trying individually", e)
+                val failures = mutableMapOf<String, RateResource.UnavailableReason>()
+                currencies.forEach { currency ->
+                    try {
+                        val dtos = api.getTickers(currency.code)
+                        dtos.forEach { dto -> dto.toEntity(fetchedAtEpochMs = now)?.let { dao.upsertTicker(it) } }
+                    } catch (ce: CancellationException) {
+                        throw ce
+                    } catch (ioe: IOException) {
+                        failures[currency.code] = RateResource.UnavailableReason.OFFLINE
+                    } catch (e: Exception) {
+                        failures[currency.code] = RateResource.UnavailableReason.RATE_UNAVAILABLE
+                    }
+                }
+                failures
+            }
         }
 
         companion object {

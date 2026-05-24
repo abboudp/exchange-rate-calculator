@@ -4,5 +4,6 @@
     <string name="choose_currency">Choose currency</string>
     <string name="app_bar_label">Exchange</string>
     <string name="rate_unavailable">Connect to the internet to see the rate</string>
+    <string name="rate_error">Unable to fetch this exchange rate</string>
     <string name="rate_stale_tooltip">Connect to the internet to see the latest rate</string>
 </resources>

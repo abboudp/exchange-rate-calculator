@@ -209,7 +209,9 @@ class CalculatorViewModel
                         text = formatRate(ticker, fiatCode, activeCurrency),
                         isFresh = !ticker.isStale,
                     )
-                is RateResource.Unavailable -> RateDisplayState.Unavailable
+                is RateResource.Unavailable -> RateDisplayState.Unavailable(
+                    isOffline = reason == RateResource.UnavailableReason.OFFLINE,
+                )
             }
 
         // The rate text reflects the direction the user is converting from:

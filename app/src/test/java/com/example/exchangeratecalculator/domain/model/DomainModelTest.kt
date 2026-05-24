@@ -40,7 +40,7 @@ class DomainModelTest {
             listOf(
                 RateResource.Loading,
                 RateResource.Available(ticker()),
-                RateResource.Unavailable("no data"),
+                RateResource.Unavailable(RateResource.UnavailableReason.RATE_UNAVAILABLE),
             )
         resources.forEach { resource ->
             val label =

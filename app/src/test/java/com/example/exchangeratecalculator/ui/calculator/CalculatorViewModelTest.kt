@@ -220,10 +220,24 @@ class CalculatorViewModelTest {
     fun unavailableRateResource_mapsToUnavailable() =
         runTest {
             val rateRepo = FakeRateRepository()
-            rateRepo.emit("MXN", RateResource.Unavailable("offline"))
+            rateRepo.emit("MXN", RateResource.Unavailable(RateResource.UnavailableReason.OFFLINE))
             val viewModel = createViewModel(rateRepository = rateRepo)
 
-            assertEquals(RateDisplayState.Unavailable, viewModel.uiState.value.rateDisplayState)
+            val display = viewModel.uiState.value.rateDisplayState
+            assertTrue(display is RateDisplayState.Unavailable)
+            assertTrue((display as RateDisplayState.Unavailable).isOffline)
+        }
+
+    @Test
+    fun rateUnavailableResource_mapsToUnavailableNotOffline() =
+        runTest {
+            val rateRepo = FakeRateRepository()
+            rateRepo.emit("MXN", RateResource.Unavailable(RateResource.UnavailableReason.RATE_UNAVAILABLE))
+            val viewModel = createViewModel(rateRepository = rateRepo)
+
+            val display = viewModel.uiState.value.rateDisplayState
+            assertTrue(display is RateDisplayState.Unavailable)
+            assertFalse((display as RateDisplayState.Unavailable).isOffline)
         }
 
     @Test
