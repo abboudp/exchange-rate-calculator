@@ -168,7 +168,7 @@ private fun KeyButton(
         enabled = enabled,
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().height(KEY_HEIGHT).padding(4.dp),
+            modifier = Modifier.fillMaxWidth().height(KEY_HEIGHT).padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
             Column(
