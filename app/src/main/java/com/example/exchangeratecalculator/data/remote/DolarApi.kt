@@ -9,6 +9,9 @@ interface DolarApi {
         @Query("currencies") currencies: String,
     ): List<RateTickerDto>
 
+    @GET("v1/tickers-currencies")
+    suspend fun getAvailableCurrencies(): List<String>
+
     companion object {
         const val BASE_URL = "https://api.dolarapp.dev/"
     }

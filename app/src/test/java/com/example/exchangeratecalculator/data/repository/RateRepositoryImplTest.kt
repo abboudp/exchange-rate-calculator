@@ -116,6 +116,8 @@ class RateRepositoryImplTest {
             error?.let { throw it }
             return response
         }
+
+        override suspend fun getAvailableCurrencies(): List<String> = emptyList()
     }
 
     private class FakeDao : RateTickerDao {
