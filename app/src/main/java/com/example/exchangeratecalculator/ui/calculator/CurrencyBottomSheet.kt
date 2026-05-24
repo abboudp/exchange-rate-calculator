@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -43,13 +43,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.exchangeratecalculator.R
 import com.example.exchangeratecalculator.domain.model.Currency
-import com.example.exchangeratecalculator.presentation.theme.BrandGreen
-import com.example.exchangeratecalculator.presentation.theme.CardBackground
-import com.example.exchangeratecalculator.presentation.theme.HandleGray
-import com.example.exchangeratecalculator.presentation.theme.PickerFlagBackground
-import com.example.exchangeratecalculator.presentation.theme.PrimaryText
-import com.example.exchangeratecalculator.presentation.theme.ScreenBackground
-import com.example.exchangeratecalculator.presentation.theme.SelectionBorderGray
+import com.example.exchangeratecalculator.ui.theme.BrandGreen
+import com.example.exchangeratecalculator.ui.theme.CardBackground
+import com.example.exchangeratecalculator.ui.theme.HandleGray
+import com.example.exchangeratecalculator.ui.theme.PickerFlagBackground
+import com.example.exchangeratecalculator.ui.theme.PrimaryText
+import com.example.exchangeratecalculator.ui.theme.ScreenBackground
+import com.example.exchangeratecalculator.ui.theme.SelectionBorderGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

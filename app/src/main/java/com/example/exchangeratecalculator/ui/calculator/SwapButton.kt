@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.example.exchangeratecalculator.presentation.theme.BrandGreen
-import com.example.exchangeratecalculator.presentation.theme.SwapButtonGlow
+import com.example.exchangeratecalculator.ui.theme.BrandGreen
+import com.example.exchangeratecalculator.ui.theme.SwapButtonGlow
 
 @Composable
 fun SwapButton(

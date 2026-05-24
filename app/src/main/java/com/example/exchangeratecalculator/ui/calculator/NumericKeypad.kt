@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,9 +25,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.exchangeratecalculator.presentation.theme.KeyBackground
-import com.example.exchangeratecalculator.presentation.theme.KeyboardBackground
-import com.example.exchangeratecalculator.presentation.theme.PrimaryText
+import com.example.exchangeratecalculator.ui.theme.KeyBackground
+import com.example.exchangeratecalculator.ui.theme.KeyboardBackground
+import com.example.exchangeratecalculator.ui.theme.PrimaryText
 
 @Composable
 fun NumericKeypad(

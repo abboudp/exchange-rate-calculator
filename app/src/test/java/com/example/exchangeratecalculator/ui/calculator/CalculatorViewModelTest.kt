@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import com.example.exchangeratecalculator.core.coroutine.StaleRecheckTicker
 import com.example.exchangeratecalculator.data.remote.FallbackCurrenciesProvider

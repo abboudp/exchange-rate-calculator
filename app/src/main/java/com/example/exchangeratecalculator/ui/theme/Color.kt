@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.theme
+package com.example.exchangeratecalculator.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -34,9 +34,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.exchangeratecalculator.presentation.theme.CardBackground
-import com.example.exchangeratecalculator.presentation.theme.CursorBlue
-import com.example.exchangeratecalculator.presentation.theme.PrimaryText
+import com.example.exchangeratecalculator.ui.theme.CardBackground
+import com.example.exchangeratecalculator.ui.theme.CursorBlue
+import com.example.exchangeratecalculator.ui.theme.PrimaryText
 
 @Composable
 fun CurrencyAmountRow(

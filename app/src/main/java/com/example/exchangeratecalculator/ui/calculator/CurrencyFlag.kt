@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
