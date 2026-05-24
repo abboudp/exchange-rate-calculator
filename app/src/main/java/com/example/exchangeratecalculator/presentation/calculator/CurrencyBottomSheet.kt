@@ -40,6 +40,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.exchangeratecalculator.R
 import com.example.exchangeratecalculator.domain.model.Currency
 import com.example.exchangeratecalculator.presentation.theme.BrandGreen
@@ -76,13 +77,13 @@ fun CurrencyBottomSheet(
                     .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().height(32.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = stringResource(R.string.choose_currency),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
                     color = PrimaryText,
                     modifier = Modifier.weight(1f),
                 )
@@ -163,7 +164,7 @@ internal fun CurrencyPickerItem(
                 .padding(horizontal = 16.dp)
                 .testTag("picker_row_${currency.code}"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         CurrencyPickerFlag(currency.code)
         Text(
@@ -183,7 +184,7 @@ private fun CurrencyPickerFlag(code: String) {
         modifier =
             Modifier
                 .size(40.dp)
-                .background(color = PickerFlagBackground, shape = CircleShape),
+                .background(color = PickerFlagBackground, shape = RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center,
     ) {
         CurrencyFlag(code = code, modifier = Modifier.size(28.dp))
