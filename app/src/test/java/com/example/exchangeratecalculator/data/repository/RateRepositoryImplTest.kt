@@ -103,7 +103,7 @@ class RateRepositoryImplTest {
                 object : DolarApi {
                     override suspend fun getTickers(currencies: String): List<RateTickerDto> {
                         capturedQueries += currencies
-                        return emptyList()
+                        return listOf(sampleDto.copy(book = "usdc_mxn"))
                     }
 
                     override suspend fun getAvailableCurrencies(): List<String> = emptyList()
