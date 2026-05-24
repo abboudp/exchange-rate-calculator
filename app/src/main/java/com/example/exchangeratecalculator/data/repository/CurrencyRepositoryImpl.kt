@@ -24,7 +24,7 @@ class CurrencyRepositoryImpl
         private val settingsDataStore: SettingsDataStore,
         @param:ApplicationScope private val appScope: CoroutineScope,
     ) : CurrencyRepository {
-        private val _currencies: StateFlow<List<Currency>> =
+        private val currencies: StateFlow<List<Currency>> =
             flow {
                 val cached = settingsDataStore.getCurrencyCodes()
                 emit(
@@ -50,5 +50,5 @@ class CurrencyRepositoryImpl
                 initialValue = FallbackCurrenciesProvider.currencies,
             )
 
-        override fun observeAvailableCurrencies(): Flow<List<Currency>> = _currencies
+        override fun observeAvailableCurrencies(): Flow<List<Currency>> = currencies
     }
