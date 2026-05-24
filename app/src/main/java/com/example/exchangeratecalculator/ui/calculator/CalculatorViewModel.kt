@@ -53,18 +53,22 @@ class CalculatorViewModel
 
         init {
             viewModelScope.launch {
-                getAvailableCurrencies().collect { currencies ->
-                    _uiState.update { it.copy(pickerState = it.pickerState.copy(currencies = currencies)) }
-                }
-            }
-            viewModelScope.launch {
-                settingsRepository.observeSettings().collect { settings ->
-                    applySettings(settings)
-                    if (settings.selectedFiatCode != lastObservedFiatCode) {
-                        observeRateForCurrency(settings.selectedFiatCode)
-                        lastObservedFiatCode = settings.selectedFiatCode
+                combine(
+                    getAvailableCurrencies(),
+                    settingsRepository.observeSettings(),
+                ) { currencies, settings -> currencies to settings }
+                    .collect { (currencies, settings) ->
+                        _uiState.update { it.copy(pickerState = it.pickerState.copy(currencies = currencies)) }
+                        if (currencies.isNotEmpty() && currencies.none { it.code == settings.selectedFiatCode }) {
+                            settingsRepository.updateSelectedCurrency(currencies.first().code)
+                        } else {
+                            applySettings(settings)
+                            if (settings.selectedFiatCode != lastObservedFiatCode) {
+                                observeRateForCurrency(settings.selectedFiatCode)
+                                lastObservedFiatCode = settings.selectedFiatCode
+                            }
+                        }
                     }
-                }
             }
         }
 

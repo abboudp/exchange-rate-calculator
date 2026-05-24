@@ -253,6 +253,20 @@ class CalculatorViewModelTest {
         }
 
     @Test
+    fun savedCurrencyAbsentFromList_resetsToFirstAvailable() =
+        runTest {
+            val settingsRepo = FakeSettingsRepository(AppSettings(selectedFiatCode = "EUR"))
+            val viewModel =
+                createViewModel(
+                    settings = settingsRepo,
+                    currencies = listOf(Currency("MXN", false), Currency("ARS", false)),
+                )
+
+            assertEquals("MXN", viewModel.uiState.value.pickerState.selectedCode)
+            assertEquals("MXN", viewModel.uiState.value.bottomCurrencyCode)
+        }
+
+    @Test
     fun pickerCurrencies_updatesWhenFlowEmitsNewList() =
         runTest {
             val currencyFlow = MutableStateFlow(FallbackCurrenciesProvider.currencies)
