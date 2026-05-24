@@ -164,7 +164,7 @@ internal fun CurrencyPickerItem(
                 .padding(horizontal = 16.dp)
                 .testTag("picker_row_${currency.code}"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         CurrencyPickerFlag(currency.code)
         Text(

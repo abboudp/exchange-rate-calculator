@@ -98,11 +98,13 @@ private fun RowScope.DigitKey(
             fontWeight = FontWeight.Normal,
             fontSize = 25.sp,
         )
-        Text(
-            text = subLabel.orEmpty(),
-            color = PrimaryText,
-            fontSize = 10.sp,
-        )
+        if (!subLabel.isNullOrEmpty()) {
+            Text(
+                text = subLabel,
+                color = PrimaryText,
+                fontSize = 10.sp,
+            )
+        }
     }
 }
 
@@ -177,4 +179,4 @@ private fun KeyButton(
     }
 }
 
-private val KEY_HEIGHT = 46.dp
+private val KEY_HEIGHT = 56.dp
