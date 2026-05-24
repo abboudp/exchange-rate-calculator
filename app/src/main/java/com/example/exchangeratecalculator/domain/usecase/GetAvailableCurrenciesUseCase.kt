@@ -2,6 +2,7 @@ package com.example.exchangeratecalculator.domain.usecase
 
 import com.example.exchangeratecalculator.domain.model.Currency
 import com.example.exchangeratecalculator.domain.repository.CurrencyRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class GetAvailableCurrenciesUseCase
@@ -9,5 +10,5 @@ class GetAvailableCurrenciesUseCase
     constructor(
         private val repository: CurrencyRepository,
     ) {
-        suspend operator fun invoke(): List<Currency> = repository.getAvailableCurrencies()
+        operator fun invoke(): Flow<List<Currency>> = repository.observeAvailableCurrencies()
     }

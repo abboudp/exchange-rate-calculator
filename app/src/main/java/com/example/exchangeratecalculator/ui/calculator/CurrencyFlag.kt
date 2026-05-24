@@ -11,14 +11,14 @@ import androidx.compose.ui.res.painterResource
 import com.example.exchangeratecalculator.R
 
 @DrawableRes
-fun currencyFlagRes(code: String): Int? =
+fun currencyFlagRes(code: String): Int =
     when (code) {
         "USDC" -> R.drawable.flag_usdc
         "MXN" -> R.drawable.flag_mxn
         "ARS" -> R.drawable.flag_ars
         "BRL" -> R.drawable.flag_brl
         "COP" -> R.drawable.flag_cop
-        else -> null
+        else -> R.drawable.flag_placeholder
     }
 
 @Composable
@@ -26,9 +26,8 @@ fun CurrencyFlag(
     code: String,
     modifier: Modifier = Modifier,
 ) {
-    val res = currencyFlagRes(code) ?: return
     Image(
-        painter = painterResource(res),
+        painter = painterResource(currencyFlagRes(code)),
         contentDescription = null,
         modifier = modifier.clip(CircleShape),
         contentScale = ContentScale.Fit,

@@ -220,10 +220,24 @@ class CalculatorViewModelTest {
     fun unavailableRateResource_mapsToUnavailable() =
         runTest {
             val rateRepo = FakeRateRepository()
-            rateRepo.emit("MXN", RateResource.Unavailable("offline"))
+            rateRepo.emit("MXN", RateResource.Unavailable(RateResource.UnavailableReason.OFFLINE))
             val viewModel = createViewModel(rateRepository = rateRepo)
 
-            assertEquals(RateDisplayState.Unavailable, viewModel.uiState.value.rateDisplayState)
+            val display = viewModel.uiState.value.rateDisplayState
+            assertTrue(display is RateDisplayState.Unavailable)
+            assertTrue((display as RateDisplayState.Unavailable).isOffline)
+        }
+
+    @Test
+    fun rateUnavailableResource_mapsToUnavailableNotOffline() =
+        runTest {
+            val rateRepo = FakeRateRepository()
+            rateRepo.emit("MXN", RateResource.Unavailable(RateResource.UnavailableReason.RATE_UNAVAILABLE))
+            val viewModel = createViewModel(rateRepository = rateRepo)
+
+            val display = viewModel.uiState.value.rateDisplayState
+            assertTrue(display is RateDisplayState.Unavailable)
+            assertFalse((display as RateDisplayState.Unavailable).isOffline)
         }
 
     @Test
@@ -238,6 +252,40 @@ class CalculatorViewModelTest {
             assertEquals("", viewModel.uiState.value.bottomAmountText)
         }
 
+    @Test
+    fun savedCurrencyAbsentFromList_resetsToFirstAvailable() =
+        runTest {
+            val settingsRepo = FakeSettingsRepository(AppSettings(selectedFiatCode = "EUR"))
+            val viewModel =
+                createViewModel(
+                    settings = settingsRepo,
+                    currencies = listOf(Currency("MXN", false), Currency("ARS", false)),
+                )
+
+            assertEquals("MXN", viewModel.uiState.value.pickerState.selectedCode)
+            assertEquals("MXN", viewModel.uiState.value.bottomCurrencyCode)
+        }
+
+    @Test
+    fun pickerCurrencies_updatesWhenFlowEmitsNewList() =
+        runTest {
+            val currencyFlow = MutableStateFlow(FallbackCurrenciesProvider.currencies)
+            val viewModel =
+                createViewModel(
+                    currencyRepo =
+                        object : CurrencyRepository {
+                            override fun observeAvailableCurrencies(): Flow<List<Currency>> = currencyFlow
+                        },
+                )
+            val initial = viewModel.uiState.value.pickerState.currencies
+            assertEquals(FallbackCurrenciesProvider.currencies, initial)
+
+            val newCurrencies = listOf(Currency("MXN", false), Currency("EUR", false))
+            currencyFlow.value = newCurrencies
+
+            assertEquals(newCurrencies, viewModel.uiState.value.pickerState.currencies)
+        }
+
     // --- Helpers --------------------------------------------------------------
 
     private fun createViewModel(
@@ -245,9 +293,10 @@ class CalculatorViewModelTest {
         rateRepository: FakeRateRepository = FakeRateRepository().also { it.emit("MXN", freshTicker()) },
         currencies: List<Currency> = FallbackCurrenciesProvider.currencies,
         initialRate: RateResource? = null,
+        currencyRepo: CurrencyRepository? = null,
     ): CalculatorViewModel {
         if (initialRate != null) rateRepository.emit("MXN", initialRate)
-        val currencyRepository = FakeCurrencyRepository(currencies)
+        val currencyRepository = currencyRepo ?: FakeCurrencyRepository(currencies)
         return CalculatorViewModel(
             observeRateTicker = ObserveRateTickerUseCase(rateRepository),
             getAvailableCurrencies = GetAvailableCurrenciesUseCase(currencyRepository),
@@ -313,6 +362,6 @@ class CalculatorViewModelTest {
     }
 
     private class FakeCurrencyRepository(private val currencies: List<Currency>) : CurrencyRepository {
-        override suspend fun getAvailableCurrencies(): List<Currency> = currencies
+        override fun observeAvailableCurrencies(): Flow<List<Currency>> = flowOf(currencies)
     }
 }

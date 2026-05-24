@@ -29,11 +29,6 @@ class RateTickerDtoTest {
         assertEquals("usdc_mxn", dto.book)
     }
 
-    @Test
-    fun fallbackCurrencies_queryCodes_joinsWithComma() {
-        assertEquals("MXN,ARS,BRL,COP", FallbackCurrenciesProvider.queryCodes)
-    }
-
     private fun dto(
         ask: String = "18.41",
         bid: String = "18.40",

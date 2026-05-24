@@ -25,7 +25,7 @@ sealed interface RateDisplayState {
 
     data class Available(val text: String, val isFresh: Boolean) : RateDisplayState
 
-    data object Unavailable : RateDisplayState
+    data class Unavailable(val isOffline: Boolean) : RateDisplayState
 }
 
 data class CurrencyPickerState(

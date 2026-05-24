@@ -53,17 +53,22 @@ class CalculatorViewModel
 
         init {
             viewModelScope.launch {
-                val currencies = getAvailableCurrencies()
-                _uiState.update { it.copy(pickerState = it.pickerState.copy(currencies = currencies)) }
-            }
-            viewModelScope.launch {
-                settingsRepository.observeSettings().collect { settings ->
-                    applySettings(settings)
-                    if (settings.selectedFiatCode != lastObservedFiatCode) {
-                        observeRateForCurrency(settings.selectedFiatCode)
-                        lastObservedFiatCode = settings.selectedFiatCode
+                combine(
+                    getAvailableCurrencies(),
+                    settingsRepository.observeSettings(),
+                ) { currencies, settings -> currencies to settings }
+                    .collect { (currencies, settings) ->
+                        _uiState.update { it.copy(pickerState = it.pickerState.copy(currencies = currencies)) }
+                        if (currencies.isNotEmpty() && currencies.none { it.code == settings.selectedFiatCode }) {
+                            settingsRepository.updateSelectedCurrency(currencies.first().code)
+                        } else {
+                            applySettings(settings)
+                            if (settings.selectedFiatCode != lastObservedFiatCode) {
+                                observeRateForCurrency(settings.selectedFiatCode)
+                                lastObservedFiatCode = settings.selectedFiatCode
+                            }
+                        }
                     }
-                }
             }
         }
 
@@ -208,7 +213,10 @@ class CalculatorViewModel
                         text = formatRate(ticker, fiatCode, activeCurrency),
                         isFresh = !ticker.isStale,
                     )
-                is RateResource.Unavailable -> RateDisplayState.Unavailable
+                is RateResource.Unavailable ->
+                    RateDisplayState.Unavailable(
+                        isOffline = reason == RateResource.UnavailableReason.OFFLINE,
+                    )
             }
 
         // The rate text reflects the direction the user is converting from:
