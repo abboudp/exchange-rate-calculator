@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 object InputNormalizer {
     private const val MAX_DECIMAL_PLACES = 2

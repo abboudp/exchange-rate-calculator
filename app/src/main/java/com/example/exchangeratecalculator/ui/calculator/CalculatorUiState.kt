@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import com.example.exchangeratecalculator.domain.model.Currency
 import com.example.exchangeratecalculator.domain.model.DEFAULT_FIAT_CODE

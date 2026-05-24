@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.theme
+package com.example.exchangeratecalculator.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -11,6 +11,6 @@ val CursorBlue = Color(0xFF2F7CFF)
 val KeyboardBackground = Color(0xFFD1D3D8)
 val KeyBackground = Color(0xFFFCFCFE)
 val SwapButtonGlow = Color(0xFFE7FAF1)
-val HandleGray = Color(0xFFD9D9D9)
+val HandleGray = Color(0xFF949494)
 val PickerFlagBackground = Color(0xFFF4F4F4)
 val SelectionBorderGray = Color(0xFFD1D1D6)

@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,15 +40,16 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.exchangeratecalculator.R
 import com.example.exchangeratecalculator.domain.model.Currency
-import com.example.exchangeratecalculator.presentation.theme.BrandGreen
-import com.example.exchangeratecalculator.presentation.theme.CardBackground
-import com.example.exchangeratecalculator.presentation.theme.HandleGray
-import com.example.exchangeratecalculator.presentation.theme.PickerFlagBackground
-import com.example.exchangeratecalculator.presentation.theme.PrimaryText
-import com.example.exchangeratecalculator.presentation.theme.ScreenBackground
-import com.example.exchangeratecalculator.presentation.theme.SelectionBorderGray
+import com.example.exchangeratecalculator.ui.theme.BrandGreen
+import com.example.exchangeratecalculator.ui.theme.CardBackground
+import com.example.exchangeratecalculator.ui.theme.HandleGray
+import com.example.exchangeratecalculator.ui.theme.PickerFlagBackground
+import com.example.exchangeratecalculator.ui.theme.PrimaryText
+import com.example.exchangeratecalculator.ui.theme.ScreenBackground
+import com.example.exchangeratecalculator.ui.theme.SelectionBorderGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,16 +74,16 @@ fun CurrencyBottomSheet(
                 Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().height(32.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = stringResource(R.string.choose_currency),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
                     color = PrimaryText,
                     modifier = Modifier.weight(1f),
                 )
@@ -183,7 +184,7 @@ private fun CurrencyPickerFlag(code: String) {
         modifier =
             Modifier
                 .size(40.dp)
-                .background(color = PickerFlagBackground, shape = CircleShape),
+                .background(color = PickerFlagBackground, shape = RoundedCornerShape(10.dp)),
         contentAlignment = Alignment.Center,
     ) {
         CurrencyFlag(code = code, modifier = Modifier.size(28.dp))

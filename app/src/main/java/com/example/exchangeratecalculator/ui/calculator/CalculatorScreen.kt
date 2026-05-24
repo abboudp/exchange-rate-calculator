@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -45,9 +45,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.exchangeratecalculator.R
 import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
-import com.example.exchangeratecalculator.presentation.theme.BrandGreen
-import com.example.exchangeratecalculator.presentation.theme.PrimaryText
-import com.example.exchangeratecalculator.presentation.theme.ScreenBackground
+import com.example.exchangeratecalculator.ui.theme.BrandGreen
+import com.example.exchangeratecalculator.ui.theme.PrimaryText
+import com.example.exchangeratecalculator.ui.theme.ScreenBackground
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -109,7 +109,7 @@ private fun HeaderAndInputs(
             color = PrimaryText,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         RateDisplayText(
             state = uiState.rateDisplayState,
             modifier = Modifier.padding(horizontal = 16.dp),

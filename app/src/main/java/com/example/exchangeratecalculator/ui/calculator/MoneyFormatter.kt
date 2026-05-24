@@ -1,4 +1,4 @@
-package com.example.exchangeratecalculator.presentation.calculator
+package com.example.exchangeratecalculator.ui.calculator
 
 import com.example.exchangeratecalculator.domain.model.USDC_CURRENCY
 import java.math.BigDecimal
