@@ -252,6 +252,25 @@ class CalculatorViewModelTest {
             assertEquals("", viewModel.uiState.value.bottomAmountText)
         }
 
+    @Test
+    fun pickerCurrencies_updatesWhenFlowEmitsNewList() =
+        runTest {
+            val currencyFlow = MutableStateFlow(FallbackCurrenciesProvider.currencies)
+            val viewModel =
+                createViewModel(
+                    currencyRepo = object : CurrencyRepository {
+                        override fun observeAvailableCurrencies(): Flow<List<Currency>> = currencyFlow
+                    },
+                )
+            val initial = viewModel.uiState.value.pickerState.currencies
+            assertEquals(FallbackCurrenciesProvider.currencies, initial)
+
+            val newCurrencies = listOf(Currency("MXN", false), Currency("EUR", false))
+            currencyFlow.value = newCurrencies
+
+            assertEquals(newCurrencies, viewModel.uiState.value.pickerState.currencies)
+        }
+
     // --- Helpers --------------------------------------------------------------
 
     private fun createViewModel(
@@ -259,9 +278,10 @@ class CalculatorViewModelTest {
         rateRepository: FakeRateRepository = FakeRateRepository().also { it.emit("MXN", freshTicker()) },
         currencies: List<Currency> = FallbackCurrenciesProvider.currencies,
         initialRate: RateResource? = null,
+        currencyRepo: CurrencyRepository? = null,
     ): CalculatorViewModel {
         if (initialRate != null) rateRepository.emit("MXN", initialRate)
-        val currencyRepository = FakeCurrencyRepository(currencies)
+        val currencyRepository = currencyRepo ?: FakeCurrencyRepository(currencies)
         return CalculatorViewModel(
             observeRateTicker = ObserveRateTickerUseCase(rateRepository),
             getAvailableCurrencies = GetAvailableCurrenciesUseCase(currencyRepository),
