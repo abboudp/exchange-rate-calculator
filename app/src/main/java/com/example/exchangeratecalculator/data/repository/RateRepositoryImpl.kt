@@ -5,10 +5,10 @@ import com.example.exchangeratecalculator.core.coroutine.DispatcherProvider
 import com.example.exchangeratecalculator.data.local.RateTickerDao
 import com.example.exchangeratecalculator.data.local.toDomain
 import com.example.exchangeratecalculator.data.remote.DolarApi
-import com.example.exchangeratecalculator.data.remote.FallbackCurrenciesProvider
 import com.example.exchangeratecalculator.data.remote.toEntity
 import com.example.exchangeratecalculator.di.ApplicationScope
 import com.example.exchangeratecalculator.domain.model.RateResource
+import com.example.exchangeratecalculator.domain.repository.CurrencyRepository
 import com.example.exchangeratecalculator.domain.repository.RateRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +31,7 @@ class RateRepositoryImpl
         private val api: DolarApi,
         private val dao: RateTickerDao,
         private val dispatchers: DispatcherProvider,
+        private val currencyRepository: CurrencyRepository,
         @param:ApplicationScope private val appScope: CoroutineScope,
     ) : RateRepository {
         init {
@@ -87,7 +88,12 @@ class RateRepositoryImpl
             }.flowOn(dispatchers.io)
 
         private suspend fun fetchAllTickers() {
-            val dtos = api.getTickers(FallbackCurrenciesProvider.queryCodes)
+            val queryCodes =
+                currencyRepository.observeAvailableCurrencies()
+                    .first()
+                    .filter { !it.isBase }
+                    .joinToString(",") { it.code }
+            val dtos = api.getTickers(queryCodes)
             val now = System.currentTimeMillis()
             dtos.forEach { dto -> dto.toEntity(fetchedAtEpochMs = now)?.let { dao.upsertTicker(it) } }
         }

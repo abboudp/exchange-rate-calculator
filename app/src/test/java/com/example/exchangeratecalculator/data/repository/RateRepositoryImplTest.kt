@@ -4,13 +4,17 @@ import com.example.exchangeratecalculator.core.coroutine.DispatcherProvider
 import com.example.exchangeratecalculator.data.local.RateTickerDao
 import com.example.exchangeratecalculator.data.local.RateTickerEntity
 import com.example.exchangeratecalculator.data.remote.DolarApi
+import com.example.exchangeratecalculator.data.remote.FallbackCurrenciesProvider
 import com.example.exchangeratecalculator.data.remote.RateTickerDto
+import com.example.exchangeratecalculator.domain.model.Currency
 import com.example.exchangeratecalculator.domain.model.RateResource
+import com.example.exchangeratecalculator.domain.repository.CurrencyRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestScope
@@ -90,14 +94,41 @@ class RateRepositoryImplTest {
             assertEquals(0, dao.upserts.size)
         }
 
+    @Test
+    fun fetchAllTickers_usesQueryCodesFromCurrencyRepository() =
+        runTest {
+            val customCurrencies = listOf(Currency("MXN", false), Currency("ARS", false))
+            val capturedQueries = mutableListOf<String>()
+            val capturingApi =
+                object : DolarApi {
+                    override suspend fun getTickers(currencies: String): List<RateTickerDto> {
+                        capturedQueries += currencies
+                        return emptyList()
+                    }
+
+                    override suspend fun getAvailableCurrencies(): List<String> = emptyList()
+                }
+            val repo =
+                newRepo(
+                    api = capturingApi,
+                    currencyRepository = FakeCurrencyRepository(customCurrencies),
+                )
+
+            repo.observeRateTicker("MXN").take(2).toList()
+
+            assertTrue("expected query 'MXN,ARS' but got $capturedQueries", capturedQueries.any { it == "MXN,ARS" })
+        }
+
     private fun TestScope.newRepo(
         api: DolarApi = FakeApi(response = emptyList()),
         dao: FakeDao = FakeDao(),
+        currencyRepository: CurrencyRepository = FakeCurrencyRepository(),
     ): RateRepositoryImpl =
         RateRepositoryImpl(
             api = api,
             dao = dao,
             dispatchers = TestDispatcherProvider(UnconfinedTestDispatcher(testScheduler)),
+            currencyRepository = currencyRepository,
             appScope = backgroundScope,
         )
 
@@ -130,6 +161,12 @@ class RateRepositoryImplTest {
             upserts += entity
             ticker.value = entity
         }
+    }
+
+    private class FakeCurrencyRepository(
+        private val currencies: List<Currency> = FallbackCurrenciesProvider.currencies,
+    ) : CurrencyRepository {
+        override fun observeAvailableCurrencies(): Flow<List<Currency>> = flowOf(currencies)
     }
 
     private class TestDispatcherProvider(
