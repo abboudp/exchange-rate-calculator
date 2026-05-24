@@ -74,7 +74,7 @@ fun CurrencyBottomSheet(
                 Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().height(32.dp),
