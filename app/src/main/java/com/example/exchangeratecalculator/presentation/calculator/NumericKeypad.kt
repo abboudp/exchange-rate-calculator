@@ -38,17 +38,14 @@ fun NumericKeypad(
     canBackspace: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    // Background is applied BEFORE navigationBarsPadding so the grey extends
-    // edge-to-edge under the system gesture bar; the keys themselves still
-    // sit above it via the inset padding that follows.
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .background(KeyboardBackground)
                 .navigationBarsPadding()
-                .padding(top = 12.dp, bottom = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(top = 6.dp, bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         KeypadRow {
             DigitKey('1', null, onDigit)
@@ -101,12 +98,10 @@ private fun RowScope.DigitKey(
             fontWeight = FontWeight.Normal,
             fontSize = 25.sp,
         )
-        // Always render the sub-label slot (empty for "1") so the digit
-        // sits at the same vertical position on every key.
         Text(
             text = subLabel.orEmpty(),
-            color = PrimaryText.copy(alpha = 0.6f),
-            fontSize = 9.sp,
+            color = PrimaryText,
+            fontSize = 10.sp,
         )
     }
 }
@@ -182,4 +177,4 @@ private fun KeyButton(
     }
 }
 
-private val KEY_HEIGHT = 64.dp
+private val KEY_HEIGHT = 46.dp
