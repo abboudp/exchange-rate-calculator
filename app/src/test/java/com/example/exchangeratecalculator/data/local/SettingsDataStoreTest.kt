@@ -53,4 +53,31 @@ class SettingsDataStoreTest {
 
             assertTrue(dataStore.observeSettings().first().isSwapped)
         }
+
+    @Test
+    fun getCurrencyCodes_returnsEmpty_whenNothingPersisted() =
+        runBlocking {
+            assertEquals(emptyList<String>(), SettingsDataStore(newStore()).getCurrencyCodes())
+        }
+
+    @Test
+    fun saveCurrencyCodes_andGetCurrencyCodes_roundTrip() =
+        runBlocking {
+            val dataStore = SettingsDataStore(newStore())
+
+            dataStore.saveCurrencyCodes(listOf("MXN", "ARS", "BRL"))
+
+            assertEquals(listOf("MXN", "ARS", "BRL"), dataStore.getCurrencyCodes())
+        }
+
+    @Test
+    fun saveCurrencyCodes_overwritesPreviousValue() =
+        runBlocking {
+            val dataStore = SettingsDataStore(newStore())
+            dataStore.saveCurrencyCodes(listOf("MXN", "ARS"))
+
+            dataStore.saveCurrencyCodes(listOf("BRL", "COP"))
+
+            assertEquals(listOf("BRL", "COP"), dataStore.getCurrencyCodes())
+        }
 }
