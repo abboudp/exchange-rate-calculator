@@ -168,7 +168,7 @@ private fun KeyButton(
         enabled = enabled,
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().height(KEY_HEIGHT).padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().height(KEY_HEIGHT).padding(4.dp),
             contentAlignment = Alignment.Center,
         ) {
             Column(
@@ -179,4 +179,4 @@ private fun KeyButton(
     }
 }
 
-private val KEY_HEIGHT = 56.dp
+private val KEY_HEIGHT = 60.dp
